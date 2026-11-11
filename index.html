@@ -3600,6 +3600,12 @@ function applyDamageToEnemy(entId, dmg, isHead, fromNetwork = false) {
   const ent = entities.get(entId);
   if (!ent || !ent.isEnemy) return;
 
+  // Se colpisci una guardia da lontano, reagisce subito e passa all'attacco venendoti incontro!
+  if (!ent.stationary) {
+    ent.isAggro = true;
+    ent.changeDirTimer = 0;
+  }
+
   if (!fromNetwork) {
     sfx.playHit(isHead);
     const hm = document.getElementById('hitmarker');
@@ -3628,283 +3634,90 @@ function applyDamageToEnemy(entId, dmg, isHead, fromNetwork = false) {
 }
 
 // ============================================================================
-// 11. FISICA GIOCATORE, GUIDA VEICOLI 3D E INTERAZIONI [E] / [F]
+// 12. IA TATTICA GUARDIE, COORDINATORE SQUADRE A TURNO & AGGIRAMENTO OSTACOLI
 // ============================================================================
-const GRAVITY = 40.0;
-const JUMP_FORCE = 14.8;
-const BASE_SPEED = 17.5;
+let squadRotationTimer = 0;
 
-function updatePlayerAndVehiclePhysics(dt) {
-  if (player.drivingVehicle) {
-    const v = player.drivingVehicle;
-    let throttle = 0;
-    let steer = 0;
-    if (keys['KeyW'] || keys['ArrowUp']) throttle += 1;
-    if (keys['KeyS'] || keys['ArrowDown']) throttle -= 1;
-    if (keys['KeyA'] || keys['ArrowLeft']) steer += 1;
-    if (keys['KeyD'] || keys['ArrowRight']) steer -= 1;
+// Restituisce il giocatore (locale o amico Co-op) più vicino al nemico
+function getClosestPlayerTarget(fromPos) {
+  let bestPos = player.pos;
+  let bestDist = fromPos.distanceTo(player.pos);
 
-    const accel = 32.0;
-    if (throttle !== 0) {
-      v.speed += throttle * accel * dt;
-    } else {
-      v.speed *= (1 - 2.5 * dt);
+  entities.forEach(e => {
+    if (!e.isEnemy && e.hp > 0) {
+      const d = fromPos.distanceTo(e.pos);
+      if (d < bestDist) {
+        bestDist = d;
+        bestPos = e.pos;
+      }
     }
-    if (keys['Space']) {
-      v.speed *= (1 - 7.5 * dt); // Freno a mano
-    }
-    v.speed = Math.max(-v.maxSpeed * 0.45, Math.min(v.maxSpeed, v.speed));
+  });
 
-    if (Math.abs(v.speed) > 0.8) {
-      const dirSign = v.speed >= 0 ? 1 : -1;
-      v.yaw += steer * 2.1 * dirSign * dt;
-    }
-
-    const vx = -Math.sin(v.yaw) * v.speed * dt;
-    const vz = -Math.cos(v.yaw) * v.speed * dt;
-
-    if (!checkVehicleWorldCollision(v.pos.x + vx, v.pos.z, 2.2)) {
-      v.pos.x += vx;
-    } else {
-      v.speed *= -0.35;
-    }
-    if (!checkVehicleWorldCollision(v.pos.x, v.pos.z + vz, 2.2)) {
-      v.pos.z += vz;
-    } else {
-      v.speed *= -0.35;
-    }
-
-    v.pos.x = Math.max(-332, Math.min(332, v.pos.x));
-    v.pos.z = Math.max(-332, Math.min(332, v.pos.z));
-
-    v.mesh.position.copy(v.pos);
-    v.mesh.rotation.y = v.yaw;
-    player.pos.copy(v.pos);
-
-    // Investimento nemici ad alta velocità (Roadkill)
-    if (Math.abs(v.speed) > 15) {
-      entities.forEach(ent => {
-        if (ent.isEnemy && ent.pos.distanceTo(v.pos) < 3.6) {
-          spawnImpactSparks(ent.pos, 0xff2222);
-          applyDamageToEnemy(ent.id, 260, false, false);
-        }
-      });
-    }
-
-    // Visuale 3ª Persona stile GTA V dietro l'auto
-    const camDist = 11.5;
-    const camHeight = 4.6;
-    const camX = v.pos.x + Math.sin(v.yaw) * camDist;
-    const camZ = v.pos.z + Math.cos(v.yaw) * camDist;
-    camera.position.lerp(new THREE.Vector3(camX, v.pos.y + camHeight, camZ), Math.min(1, dt * 10));
-    camera.lookAt(v.pos.x - Math.sin(v.yaw) * 6, v.pos.y + 1.8, v.pos.z - Math.cos(v.yaw) * 6);
-    camera.fov = 78 + Math.min(14, Math.abs(v.speed) * 0.25);
-    camera.updateProjectionMatrix();
-
-    updateHUD();
-    checkProximityPrompts(dt);
-    return;
-  }
-
-  // MOVIMENTO A PIEDI
-  const cls = CLASSES[player.classIdx];
-  const weap = getActiveWeapon();
-  player.isCrouching = !!(keys['KeyC'] || keys['ControlLeft']);
-  const isSprinting = !!(keys['ShiftLeft'] || keys['ShiftRight']) && !player.isCrouching && !player.isAds;
-
-  const targetH = player.isCrouching ? player.crouchHeight : player.height;
-  player.currentHeight += (targetH - player.currentHeight) * Math.min(1, dt * 14);
-
-  let forward = 0, right = 0;
-  if (keys['KeyW'] || keys['ArrowUp']) forward += 1;
-  if (keys['KeyS'] || keys['ArrowDown']) forward -= 1;
-  if (keys['KeyD'] || keys['ArrowRight']) right += 1;
-  if (keys['KeyA'] || keys['ArrowLeft']) right -= 1;
-
-  const moveDir = new THREE.Vector3(right, 0, -forward);
-  if (moveDir.lengthSq() > 0) moveDir.normalize();
-  moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), player.yaw);
-
-  const sprintMult = isSprinting ? 1.34 : 1.0;
-  const knifeMult = weap.isKnife ? 1.15 : 1.0;
-  const maxSpeed = BASE_SPEED * cls.speedMult * sprintMult * knifeMult * (player.isAds ? 0.65 : 1.0) * (player.isCrouching ? 0.62 : 1.0);
-  const accel = player.onGround ? 14.0 : 4.5;
-
-  player.vel.x += (moveDir.x * maxSpeed - player.vel.x) * Math.min(1, accel * dt);
-  player.vel.z += (moveDir.z * maxSpeed - player.vel.z) * Math.min(1, accel * dt);
-
-  if (keys['Space'] && player.onGround) {
-    player.vel.y = JUMP_FORCE;
-    player.onGround = false;
-  }
-
-  player.vel.y -= GRAVITY * dt;
-
-  player.pos.x += player.vel.x * dt;
-  resolvePlayerCollisions('x');
-
-  player.pos.z += player.vel.z * dt;
-  resolvePlayerCollisions('z');
-
-  player.onGround = false;
-  player.pos.y += player.vel.y * dt;
-  if (player.pos.y <= 0) {
-    player.pos.y = 0;
-    player.vel.y = 0;
-    player.onGround = true;
-  }
-  resolvePlayerCollisions('y');
-
-  camera.position.set(player.pos.x, player.pos.y + player.currentHeight, player.pos.z);
-  camera.rotation.order = 'YXZ';
-  camera.rotation.y = player.yaw;
-  camera.rotation.x = player.pitch;
-
-  const targetFov = player.isAds ? weap.adsFov : (isSprinting ? 84 : 75);
-  camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 14);
-  camera.updateProjectionMatrix();
-
-  if (currentWeaponMesh) {
-    if (player.slashAnimTimer > 0) {
-      player.slashAnimTimer -= dt;
-      currentWeaponMesh.position.set(0.12, -0.18, -0.72);
-      currentWeaponMesh.rotation.set(-0.6, 0.5, -0.4);
-    } else {
-      const targetX = player.isAds ? 0.0 : 0.32;
-      const targetY = player.isAds ? -0.17 : -0.28;
-      const targetZ = player.isAds ? -0.38 : -0.52;
-      currentWeaponMesh.position.x += (targetX - currentWeaponMesh.position.x) * Math.min(1, dt * 15);
-      currentWeaponMesh.position.y += (targetY - currentWeaponMesh.position.y) * Math.min(1, dt * 15);
-      currentWeaponMesh.position.z += (targetZ - currentWeaponMesh.position.z) * Math.min(1, dt * 15);
-      currentWeaponMesh.rotation.x += (0 - currentWeaponMesh.rotation.x) * Math.min(1, dt * 12);
-      currentWeaponMesh.rotation.y += (0 - currentWeaponMesh.rotation.y) * Math.min(1, dt * 12);
-      currentWeaponMesh.rotation.z += (0 - currentWeaponMesh.rotation.z) * Math.min(1, dt * 12);
-    }
-  }
-
-  checkProximityPrompts(dt);
+  return { pos: bestPos, dist: bestDist };
 }
 
-function checkVehicleWorldCollision(vx, vz, radius) {
+// Controlla se una coordinata (x, z) collide con muri o ostacoli alti
+function isEnemyPointBlocked(x, z, radius = 0.85) {
   for (let i = 0; i < mapColliders.length; i++) {
     const b = mapColliders[i];
-    if (!b.active || b.maxY < 0.8) continue;
-    if (vx + radius > b.minX && vx - radius < b.maxX && vz + radius > b.minZ && vz - radius < b.maxZ) {
+    if (!b.active || b.maxY < 1.2) continue;
+    if (x + radius > b.minX && x - radius < b.maxX && z + radius > b.minZ && z - radius < b.maxZ) {
       return true;
     }
   }
   return false;
 }
 
-function resolvePlayerCollisions(axis) {
-  const r = player.radius;
-  const h = player.currentHeight + 0.3;
-
-  for (let i = 0; i < mapColliders.length; i++) {
-    const b = mapColliders[i];
-    if (!b.active) continue;
-    if (
-      player.pos.x + r > b.minX && player.pos.x - r < b.maxX &&
-      player.pos.y + h > b.minY && player.pos.y < b.maxY &&
-      player.pos.z + r > b.minZ && player.pos.z - r < b.maxZ
-    ) {
-      if (axis === 'x') {
-        if (b.maxY - player.pos.y <= 1.15 && player.vel.y <= 0) {
-          player.pos.y = b.maxY;
-          player.onGround = true;
-          continue;
-        }
-        if (player.vel.x > 0) player.pos.x = b.minX - r;
-        else if (player.vel.x < 0) player.pos.x = b.maxX + r;
-        player.vel.x = 0;
-      } else if (axis === 'z') {
-        if (b.maxY - player.pos.y <= 1.15 && player.vel.y <= 0) {
-          player.pos.y = b.maxY;
-          player.onGround = true;
-          continue;
-        }
-        if (player.vel.z > 0) player.pos.z = b.minZ - r;
-        else if (player.vel.z < 0) player.pos.z = b.maxZ + r;
-        player.vel.z = 0;
-      } else if (axis === 'y') {
-        if (player.vel.y < 0) {
-          player.pos.y = b.maxY;
-          player.vel.y = 0;
-          player.onGround = true;
-        } else if (player.vel.y > 0) {
-          player.pos.y = b.minY - h;
-          player.vel.y = 0;
-        }
-      }
-    }
-  }
-}
-
-function checkProximityPrompts(dt) {
-  const promptEl = document.getElementById('interact-prompt');
-  const textEl = document.getElementById('interact-text');
-  const fillEl = document.getElementById('interact-bar-fill');
-
-  let activeItem = null;
-  for (let i = 0; i < interactables.length; i++) {
-    const it = interactables[i];
-    if (it.completed && !it.repeatable) continue;
-    if (it.pos.distanceTo(player.pos) < 5.2) {
-      activeItem = it;
-      break;
-    }
-  }
-
-  if (activeItem && !player.drivingVehicle) {
-    promptEl.style.display = 'block';
-    textEl.textContent = activeItem.label;
-    if (keys['KeyE']) {
-      player.interactProgress += dt;
-      const pct = Math.min(100, (player.interactProgress / activeItem.holdTime) * 100);
-      fillEl.style.width = pct + '%';
-      if (player.interactProgress >= activeItem.holdTime) {
-        player.interactProgress = 0;
-        fillEl.style.width = '0%';
-        onInteractableCompleted(activeItem.id, false);
-      }
-    } else {
-      player.interactProgress = 0;
-      fillEl.style.width = '0%';
-    }
-    return;
-  }
-
-  if (!player.drivingVehicle) {
-    let nearCar = null;
-    vehicles.forEach(v => {
-      if (v.pos.distanceTo(player.pos) < 6.4) nearCar = v;
-    });
-    if (nearCar) {
-      promptEl.style.display = 'block';
-      textEl.textContent = `Premi [F] per guidare ${nearCar.name}`;
-      fillEl.style.width = '0%';
-      return;
-    }
-  }
-
-  promptEl.style.display = 'none';
-}
-
-// ============================================================================
-// 12. IA TATTICA GUARDIE, INCURSORI SWAT (ENTRANO DENTRO) E POLIZIA ESTERNA
-// ============================================================================
 function updateEnemiesAI(dt) {
   const activeWallMeshes = mapColliders.filter(c => c.active).map(c => c.mesh);
+  const m = MISSIONS[currentMissionIndex];
+
+  // COORDINATORE TATTICO A TURNI:
+  // Ogni 3.5 secondi sceglie alcune guardie della missione e le manda all'attacco (max 4-5 alla volta oltre agli SWAT)
+  // così non restano mai tutte ferme e non ti caricano tutte e 30 contemporaneamente.
+  squadRotationTimer -= dt;
+  if (squadRotationTimer <= 0) {
+    squadRotationTimer = 3.5;
+    const allMobileGuards = [];
+    let activeSeekersCount = 0;
+
+    entities.forEach(ent => {
+      if (!ent.isEnemy || ent.stationary) return;
+      const tInfo = getClosestPlayerTarget(ent.pos);
+      if (ent.aiRole === 'seeker' && tInfo.dist < 135) {
+        activeSeekersCount++;
+      } else if (ent.aiRole === 'guard' && tInfo.dist < 120) {
+        allMobileGuards.push({ ent, dist: tInfo.dist });
+      }
+    });
+
+    // Ordina le guardie dalla più vicina al giocatore
+    allMobileGuards.sort((a, b) => a.dist - b.dist);
+
+    // Determina quante guardie devono venirti incontro attivamente in questo momento (3 in fase normale, 5 se scatta l'allarme)
+    const desiredSeekers = heistState.alarmTriggered ? 5 : 3;
+    const needed = Math.max(0, desiredSeekers - activeSeekersCount);
+
+    for (let i = 0; i < Math.min(needed, allMobileGuards.length); i++) {
+      const g = allMobileGuards[i].ent;
+      g.aiRole = 'seeker';
+      g.isAggro = true;
+      g.changeDirTimer = 0;
+    }
+  }
 
   entities.forEach(ent => {
     if (!ent.isEnemy) return;
 
-    const distToPlayer = ent.pos.distanceTo(player.pos);
+    const targetInfo = getClosestPlayerTarget(ent.pos);
+    const targetPos = targetInfo.pos;
+    const distToPlayer = targetInfo.dist;
+
     const enemyEye = ent.pos.clone().add(new THREE.Vector3(0, 2.7, 0));
     let canSeePlayer = false;
 
-    if (isPlaying && distToPlayer < 78) {
-      const pAim = player.pos.clone().add(new THREE.Vector3(0, 2.0, 0));
+    if (isPlaying && distToPlayer < 88) {
+      const pAim = targetPos.clone().add(new THREE.Vector3(0, 2.0, 0));
       const dirP = new THREE.Vector3().subVectors(pAim, enemyEye).normalize();
       raycaster.set(enemyEye, dirP);
       const wHits = raycaster.intersectObjects(activeWallMeshes, false);
@@ -3915,39 +3728,66 @@ function updateEnemiesAI(dt) {
 
     if (!ent.stationary) {
       ent.changeDirTimer -= dt;
+      if (ent.stuckTimer === undefined) ent.stuckTimer = 0;
+
       if (ent.changeDirTimer <= 0) {
-        if (ent.aiRole === 'rusher') {
-          // GLI INCURSORI SWAT ENTRANO DENTRO L'EDIFICIO / CAVEAU PER VENIRTI AD UCCIDERE!
-          ent.changeDirTimer = 0.55 + Math.random() * 0.6;
-          ent.targetDir.subVectors(player.pos, ent.pos);
-          ent.targetDir.y = 0;
-          if (ent.targetDir.lengthSq() > 0.01) ent.targetDir.normalize();
-          ent.targetDir.x += (Math.random() - 0.5) * 0.35;
-          ent.targetDir.z += (Math.random() - 0.5) * 0.35;
-          ent.targetDir.normalize();
-        } else if (ent.aiRole === 'perimeter') {
-          // I POLIZIOTTI DI BLOCCO ESTERNO RESTANO VICINO ALLE VOLANTI FUORI DALL'EDIFICIO
-          ent.changeDirTimer = 1.1 + Math.random() * 1.2;
-          const toPost = new THREE.Vector3().subVectors(ent.homePos, ent.pos);
-          toPost.y = 0;
-          if (toPost.length() > 11) {
-            ent.targetDir.copy(toPost.normalize());
+        // Calcola il punto verso cui muoversi (se c'è una parete di mezzo, passa dalla porta principale dell'edificio!)
+        let moveGoal = targetPos.clone();
+        if (!canSeePlayer && m && m.entrancePos) {
+          const entDoor = new THREE.Vector3(m.entrancePos.x, 0, m.entrancePos.z);
+          const distEnemyToDoor = ent.pos.distanceTo(entDoor);
+          if (distEnemyToDoor > 6.5 && distEnemyToDoor < distToPlayer) {
+            moveGoal.copy(entDoor);
+          }
+        }
+
+        if (ent.aiRole === 'rusher' || ent.aiRole === 'seeker' || ent.isAggro) {
+          // CACCIATORI ATTIVI & INCURSORI SWAT: vengono direttamente incontro al player finché non sono a distanza di tiro ravvicinato (5.5m)
+          ent.changeDirTimer = 0.35 + Math.random() * 0.35;
+          if (distToPlayer > 5.5) {
+            ent.targetDir.subVectors(moveGoal, ent.pos);
+            ent.targetDir.y = 0;
+            if (ent.targetDir.lengthSq() > 0.01) ent.targetDir.normalize();
+            // Leggero movimento laterale (strafe) quando sono già vicini e ti vedono
+            if (canSeePlayer && distToPlayer < 14) {
+              const perp = new THREE.Vector3(-ent.targetDir.z, 0, ent.targetDir.x);
+              ent.targetDir.addScaledVector(perp, (Math.random() - 0.5) * 0.9).normalize();
+            }
           } else {
-            const angle = Math.random() * Math.PI * 2;
-            ent.targetDir.set(Math.cos(angle), 0, Math.sin(angle));
+            // Molto vicino al player: si muove lateralmente per non restare un bersaglio immobile
+            const perpAngle = Math.atan2(targetPos.z - ent.pos.z, targetPos.x - ent.pos.x) + (Math.random() > 0.5 ? 1.3 : -1.3);
+            ent.targetDir.set(Math.cos(perpAngle), 0, Math.sin(perpAngle));
+          }
+        } else if (ent.aiRole === 'perimeter') {
+          // POLIZIOTTI DI PRESIDIO ESTERNO: pattugliano intorno alle volanti, ma se ti avvicini a meno di 32m ti vengono incontro!
+          ent.changeDirTimer = 0.8 + Math.random() * 0.8;
+          if (distToPlayer < 32) {
+            ent.targetDir.subVectors(targetPos, ent.pos);
+            ent.targetDir.y = 0;
+            if (ent.targetDir.lengthSq() > 0.01) ent.targetDir.normalize();
+          } else {
+            const toPost = new THREE.Vector3().subVectors(ent.homePos, ent.pos);
+            toPost.y = 0;
+            if (toPost.length() > 14) {
+              ent.targetDir.copy(toPost.normalize());
+            } else {
+              const angle = Math.random() * Math.PI * 2;
+              ent.targetDir.set(Math.cos(angle), 0, Math.sin(angle));
+            }
           }
         } else {
-          // Guardie standard della mappa
-          ent.changeDirTimer = 1.1 + Math.random() * 1.4;
-          if ((canSeePlayer || heistState.alarmTriggered) && distToPlayer < 55 && distToPlayer > 9) {
-            ent.targetDir.subVectors(player.pos, ent.pos).normalize();
-            ent.targetDir.x += (Math.random() - 0.5) * 0.65;
-            ent.targetDir.z += (Math.random() - 0.5) * 0.65;
+          // GUARDIE DI RONDA (in attesa del loro turno): pattugliano la loro zona continuamente e se ti vedono a <40m avanzano
+          ent.changeDirTimer = 0.9 + Math.random() * 1.1;
+          if (canSeePlayer && distToPlayer < 40) {
+            ent.isAggro = true;
+            ent.aiRole = 'seeker';
+            ent.targetDir.subVectors(targetPos, ent.pos);
             ent.targetDir.y = 0;
-            ent.targetDir.normalize();
+            if (ent.targetDir.lengthSq() > 0.01) ent.targetDir.normalize();
           } else {
             const toHome = new THREE.Vector3().subVectors(ent.homePos, ent.pos);
-            if (toHome.length() > 22) {
+            toHome.y = 0;
+            if (toHome.length() > 18) {
               ent.targetDir.copy(toHome.normalize());
             } else {
               const angle = Math.random() * Math.PI * 2;
@@ -3957,38 +3797,68 @@ function updateEnemiesAI(dt) {
         }
       }
 
-      const spd = ent.isBoss ? 9.0 : (ent.aiRole === 'rusher' ? 12.8 : 10.5);
-      const nx = ent.pos.x + ent.targetDir.x * spd * dt;
-      const nz = ent.pos.z + ent.targetDir.z * spd * dt;
+      // Velocità di movimento differenziata e fluida
+      const spd = ent.isBoss ? 9.8 : (ent.aiRole === 'rusher' ? 13.5 : (ent.aiRole === 'seeker' || ent.isAggro ? 12.2 : 8.5));
+      let stepX = ent.targetDir.x * spd * dt;
+      let stepZ = ent.targetDir.z * spd * dt;
 
-      let blockedX = false;
-      let blockedZ = false;
-      for (let i = 0; i < mapColliders.length; i++) {
-        const b = mapColliders[i];
-        if (!b.active || b.maxY < 1.2) continue;
-        if (nx + 0.9 > b.minX && nx - 0.9 < b.maxX && ent.pos.z + 0.9 > b.minZ && ent.pos.z - 0.9 < b.maxZ) {
-          blockedX = true;
+      let nx = ent.pos.x + stepX;
+      let nz = ent.pos.z + stepZ;
+
+      const blockedX = isEnemyPointBlocked(nx, ent.pos.z, 0.85);
+      const blockedZ = isEnemyPointBlocked(ent.pos.x, nz, 0.85);
+
+      if (!blockedX && !blockedZ) {
+        ent.pos.x = nx;
+        ent.pos.z = nz;
+        ent.stuckTimer = 0;
+      } else {
+        // SISTEMA DI AGGIRAMENTO OSTACOLI (Obstacle Avoidance):
+        // Se la direzione diretta è bloccata da un muro/bancone, prova angoli di sterzata (+/-45°, +/-90°, +/-135°) per aggirare il muro!
+        let foundClearPath = false;
+        const baseAngle = Math.atan2(ent.targetDir.z, ent.targetDir.x);
+        const testOffsets = [0.7, -0.7, 1.4, -1.4, 2.2, -2.2];
+
+        for (let aIdx = 0; aIdx < testOffsets.length; aIdx++) {
+          const testAngle = baseAngle + testOffsets[aIdx];
+          const tx = Math.cos(testAngle);
+          const tz = Math.sin(testAngle);
+          const testNx = ent.pos.x + tx * spd * dt;
+          const testNz = ent.pos.z + tz * spd * dt;
+
+          if (!isEnemyPointBlocked(testNx, testNz, 0.85)) {
+            ent.pos.x = testNx;
+            ent.pos.z = testNz;
+            ent.targetDir.set(tx, 0, tz);
+            ent.changeDirTimer = 0.45; // Mantieni la direzione di aggiramento per superare l'angolo
+            foundClearPath = true;
+            break;
+          }
         }
-        if (ent.pos.x + 0.9 > b.minX && ent.pos.x - 0.9 < b.maxX && nz + 0.9 > b.minZ && nz - 0.9 < b.maxZ) {
-          blockedZ = true;
+
+        if (!foundClearPath) {
+          if (!blockedX) ent.pos.x = nx;
+          if (!blockedZ) ent.pos.z = nz;
+          ent.stuckTimer += dt;
+          if (ent.stuckTimer > 0.4) {
+            const randAngle = Math.random() * Math.PI * 2;
+            ent.targetDir.set(Math.cos(randAngle), 0, Math.sin(randAngle));
+            ent.changeDirTimer = 0.5;
+            ent.stuckTimer = 0;
+          }
         }
       }
 
-      // Scivolamento lungo i muri così gli incursori riescono ad attraversare le porte della banca e del caveau!
-      if (!blockedX) ent.pos.x = nx;
-      if (!blockedZ) ent.pos.z = nz;
-      if (blockedX && blockedZ) {
-        ent.targetDir.set((Math.random() - 0.5) * 2, 0, (Math.random() - 0.5) * 2).normalize();
-      }
-
-      ent.walkCycle += dt * (ent.aiRole === 'rusher' ? 12 : 9);
-      ent.mesh.leftLegPivot.rotation.x = Math.sin(ent.walkCycle) * 0.55;
-      ent.mesh.rightLegPivot.rotation.x = -Math.sin(ent.walkCycle) * 0.55;
+      // Animazione gambe sempre attiva quando il personaggio si muove
+      const walkSpeed = (ent.aiRole === 'rusher' || ent.aiRole === 'seeker' || ent.isAggro) ? 12.5 : 8.5;
+      ent.walkCycle += dt * walkSpeed;
+      ent.mesh.leftLegPivot.rotation.x = Math.sin(ent.walkCycle) * 0.6;
+      ent.mesh.rightLegPivot.rotation.x = -Math.sin(ent.walkCycle) * 0.6;
     }
 
-    if (canSeePlayer || ent.aiRole === 'rusher') {
-      const dx = player.pos.x - ent.pos.x;
-      const dz = player.pos.z - ent.pos.z;
+    if (canSeePlayer || ent.aiRole === 'rusher' || ent.aiRole === 'seeker' || ent.isAggro) {
+      const dx = targetPos.x - ent.pos.x;
+      const dz = targetPos.z - ent.pos.z;
       ent.yaw = Math.atan2(-dx, -dz);
     } else if (!ent.stationary) {
       ent.yaw = Math.atan2(-ent.targetDir.x, -ent.targetDir.z);
@@ -3999,12 +3869,12 @@ function updateEnemiesAI(dt) {
 
     ent.shootTimer -= dt;
     if (canSeePlayer && ent.shootTimer <= 0) {
-      ent.shootTimer = ent.isBoss ? 0.62 : (ent.aiRole === 'rusher' ? 0.72 : (0.9 + Math.random() * 0.65));
-      const aimPoint = player.pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 1.0, 2.0, (Math.random() - 0.5) * 1.0));
-      createBulletTracer(enemyEye, aimPoint, ent.aiRole === 'rusher' ? 0xff2222 : 0xff5533);
+      ent.shootTimer = ent.isBoss ? 0.62 : (ent.aiRole === 'rusher' ? 0.72 : (0.85 + Math.random() * 0.6));
+      const aimPoint = targetPos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 1.0, 2.0, (Math.random() - 0.5) * 1.0));
+      createBulletTracer(enemyEye, aimPoint, (ent.aiRole === 'rusher' || ent.aiRole === 'seeker') ? 0xff2222 : 0xff5533);
 
       const hitChance = Math.max(0.2, 0.54 - distToPlayer * 0.0045);
-      if (Math.random() < hitChance) {
+      if (Math.random() < hitChance && targetPos === player.pos) {
         takePlayerDamage(ent.dmg, ent.name);
       }
     }
