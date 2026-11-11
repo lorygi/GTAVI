@@ -3634,6 +3634,279 @@ function applyDamageToEnemy(entId, dmg, isHead, fromNetwork = false) {
 }
 
 // ============================================================================
+// 11. FISICA GIOCATORE, GUIDA VEICOLI E INTERAZIONI [E] / [F]
+// ============================================================================
+const GRAVITY = 40.0;
+const JUMP_FORCE = 14.8;
+const BASE_SPEED = 17.5;
+
+function updatePlayerAndVehiclePhysics(dt) {
+  // MODALITA' GUIDA VEICOLO (3ª PERSONA STILE GTA V)
+  if (player.drivingVehicle) {
+    const v = player.drivingVehicle;
+    let throttle = 0;
+    if (keys['KeyW'] || keys['ArrowUp']) throttle += 1;
+    if (keys['KeyS'] || keys['ArrowDown']) throttle -= 1;
+
+    const accelRate = throttle !== 0 ? 28.0 : 14.0;
+    const targetSpeed = throttle * v.maxSpeed * (throttle < 0 ? 0.45 : 1.0);
+    v.speed += (targetSpeed - v.speed) * Math.min(1, accelRate * dt);
+
+    // Freno a mano con SPAZIO
+    if (keys['Space']) {
+      v.speed *= Math.max(0, 1 - 6.5 * dt);
+    }
+
+    if (Math.abs(v.speed) > 0.8) {
+      const steerDir = v.speed >= 0 ? 1 : -1;
+      if (keys['KeyA'] || keys['ArrowLeft']) v.yaw += 2.1 * dt * steerDir;
+      if (keys['KeyD'] || keys['ArrowRight']) v.yaw -= 2.1 * dt * steerDir;
+    }
+
+    const vx = -Math.sin(v.yaw) * v.speed;
+    const vz = -Math.cos(v.yaw) * v.speed;
+    const nextX = v.pos.x + vx * dt;
+    const nextZ = v.pos.z + vz * dt;
+
+    // Collisione veicolo con edifici
+    const carRadius = 2.1;
+    let hitWall = false;
+    for (let i = 0; i < mapColliders.length; i++) {
+      const b = mapColliders[i];
+      if (!b.active || b.maxY < 1.0) continue;
+      if (nextX + carRadius > b.minX && nextX - carRadius < b.maxX &&
+          nextZ + carRadius > b.minZ && nextZ - carRadius < b.maxZ) {
+        hitWall = true;
+        break;
+      }
+    }
+
+    if (!hitWall) {
+      v.pos.x = Math.max(-335, Math.min(335, nextX));
+      v.pos.z = Math.max(-335, Math.min(335, nextZ));
+    } else {
+      v.speed *= -0.35;
+    }
+
+    v.mesh.position.copy(v.pos);
+    v.mesh.rotation.y = v.yaw;
+
+    // Investimento nemici ad alta velocità
+    if (Math.abs(v.speed) > 11) {
+      entities.forEach((ent, entId) => {
+        if (!ent.isEnemy) return;
+        if (ent.pos.y < 1.5 && ent.pos.distanceTo(v.pos) < 3.6) {
+          spawnImpactSparks(ent.pos.clone().add(new THREE.Vector3(0, 1.5, 0)), 0xff2222);
+          spawnFloatingDamage(ent.pos, 180, true, '🚗 INVESTITO!');
+          applyDamageToEnemy(entId, 180, true, false);
+        }
+      });
+    }
+
+    player.pos.copy(v.pos);
+    player.yaw = v.yaw;
+
+    // Telecamera inseguimento 3ª persona dietro l'auto
+    const camOffset = new THREE.Vector3(Math.sin(v.yaw) * 12.5, 5.2, Math.cos(v.yaw) * 12.5);
+    camera.position.lerp(v.pos.clone().add(camOffset), Math.min(1, dt * 10));
+    camera.lookAt(v.pos.x - Math.sin(v.yaw) * 6, v.pos.y + 1.8, v.pos.z - Math.cos(v.yaw) * 6);
+    camera.fov = 78 + Math.min(14, Math.abs(v.speed) * 0.25);
+    camera.updateProjectionMatrix();
+
+    document.getElementById('interact-prompt').style.display = 'none';
+    updateHUD();
+    return;
+  }
+
+  // MODALITA' A PIEDI (1ª PERSONA TATTICA)
+  const cls = CLASSES[player.classIdx];
+  const weap = getActiveWeapon();
+  player.isCrouching = !!(keys['KeyC'] || keys['ControlLeft']);
+  const isSprinting = !!(keys['ShiftLeft'] || keys['ShiftRight']) && !player.isCrouching && !player.isAds;
+
+  const targetH = player.isCrouching ? player.crouchHeight : player.height;
+  player.currentHeight += (targetH - player.currentHeight) * Math.min(1, dt * 14);
+
+  let forward = 0, right = 0;
+  if (keys['KeyW'] || keys['ArrowUp']) forward += 1;
+  if (keys['KeyS'] || keys['ArrowDown']) forward -= 1;
+  if (keys['KeyD'] || keys['ArrowRight']) right += 1;
+  if (keys['KeyA'] || keys['ArrowLeft']) right -= 1;
+
+  const moveDir = new THREE.Vector3(right, 0, -forward);
+  if (moveDir.lengthSq() > 0) moveDir.normalize();
+  moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), player.yaw);
+
+  const knifeBoost = weap.isKnife ? 1.16 : 1.0;
+  const sprintMult = isSprinting ? 1.34 : 1.0;
+  const crouchMult = player.isCrouching ? 0.62 : 1.0;
+  const adsMult = player.isAds ? 0.68 : 1.0;
+  const maxSpeed = BASE_SPEED * cls.speedMult * knifeBoost * sprintMult * crouchMult * adsMult;
+
+  const accel = player.onGround ? 14.0 : 4.5;
+  player.vel.x += (moveDir.x * maxSpeed - player.vel.x) * Math.min(1, accel * dt);
+  player.vel.z += (moveDir.z * maxSpeed - player.vel.z) * Math.min(1, accel * dt);
+
+  if (keys['Space'] && player.onGround) {
+    player.vel.y = JUMP_FORCE;
+    player.onGround = false;
+  }
+
+  player.vel.y -= GRAVITY * dt;
+
+  player.pos.x += player.vel.x * dt;
+  resolvePlayerCollisions('x');
+
+  player.pos.z += player.vel.z * dt;
+  resolvePlayerCollisions('z');
+
+  player.onGround = false;
+  player.pos.y += player.vel.y * dt;
+  if (player.pos.y <= 0) {
+    player.pos.y = 0;
+    player.vel.y = 0;
+    player.onGround = true;
+  }
+  resolvePlayerCollisions('y');
+
+  player.pos.x = Math.max(-338, Math.min(338, player.pos.x));
+  player.pos.z = Math.max(-338, Math.min(338, player.pos.z));
+
+  camera.position.set(player.pos.x, player.pos.y + player.currentHeight, player.pos.z);
+  camera.rotation.order = 'YXZ';
+  camera.rotation.y = player.yaw;
+  camera.rotation.x = player.pitch;
+
+  const targetFov = player.isAds ? weap.adsFov : (isSprinting ? 84 : 75);
+  camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 14);
+  camera.updateProjectionMatrix();
+
+  if (currentWeaponMesh) {
+    if (player.slashAnimTimer > 0) {
+      player.slashAnimTimer -= dt;
+      currentWeaponMesh.position.set(0.12, -0.18, -0.72);
+      currentWeaponMesh.rotation.set(-0.6, 0.5, -0.4);
+    } else {
+      const targetX = player.isAds ? 0.0 : 0.32;
+      const targetY = player.isAds ? -0.17 : -0.28;
+      const targetZ = player.isAds ? -0.38 : -0.52;
+      currentWeaponMesh.position.x += (targetX - currentWeaponMesh.position.x) * Math.min(1, dt * 15);
+      currentWeaponMesh.position.y += (targetY - currentWeaponMesh.position.y) * Math.min(1, dt * 15);
+      currentWeaponMesh.position.z += (targetZ - currentWeaponMesh.position.z) * Math.min(1, dt * 15);
+      currentWeaponMesh.rotation.x += (0 - currentWeaponMesh.rotation.x) * Math.min(1, dt * 12);
+      currentWeaponMesh.rotation.y += (0 - currentWeaponMesh.rotation.y) * Math.min(1, dt * 12);
+      currentWeaponMesh.rotation.z += (0 - currentWeaponMesh.rotation.z) * Math.min(1, dt * 12);
+    }
+  }
+
+  updateInteractionSystem(dt);
+}
+
+function resolvePlayerCollisions(axis) {
+  const r = player.radius;
+  const h = player.currentHeight + 0.3;
+
+  for (let i = 0; i < mapColliders.length; i++) {
+    const b = mapColliders[i];
+    if (!b.active) continue;
+    if (
+      player.pos.x + r > b.minX && player.pos.x - r < b.maxX &&
+      player.pos.y + h > b.minY && player.pos.y < b.maxY &&
+      player.pos.z + r > b.minZ && player.pos.z - r < b.maxZ
+    ) {
+      if (axis === 'x') {
+        if (b.maxY - player.pos.y <= 1.15 && player.vel.y <= 0) {
+          player.pos.y = b.maxY;
+          player.onGround = true;
+          continue;
+        }
+        if (player.vel.x > 0) player.pos.x = b.minX - r;
+        else if (player.vel.x < 0) player.pos.x = b.maxX + r;
+        player.vel.x = 0;
+      } else if (axis === 'z') {
+        if (b.maxY - player.pos.y <= 1.15 && player.vel.y <= 0) {
+          player.pos.y = b.maxY;
+          player.onGround = true;
+          continue;
+        }
+        if (player.vel.z > 0) player.pos.z = b.minZ - r;
+        else if (player.vel.z < 0) player.pos.z = b.maxZ + r;
+        player.vel.z = 0;
+      } else if (axis === 'y') {
+        if (player.vel.y < 0) {
+          player.pos.y = b.maxY;
+          player.vel.y = 0;
+          player.onGround = true;
+        } else if (player.vel.y > 0) {
+          player.pos.y = b.minY - h;
+          player.vel.y = 0;
+        }
+      }
+    }
+  }
+}
+
+function updateInteractionSystem(dt) {
+  const promptEl = document.getElementById('interact-prompt');
+  const textEl = document.getElementById('interact-text');
+  const barBg = document.getElementById('interact-bar-bg');
+  const barFill = document.getElementById('interact-bar-fill');
+
+  let activeItem = null;
+  let minDist = 5.0;
+
+  interactables.forEach(it => {
+    if (it.completed && !it.repeatable) return;
+    const d = it.pos.distanceTo(player.pos);
+    if (d < minDist) {
+      minDist = d;
+      activeItem = it;
+    }
+  });
+
+  if (activeItem) {
+    promptEl.style.display = 'block';
+    textEl.textContent = activeItem.label;
+    barBg.style.display = 'block';
+
+    if (keys['KeyE']) {
+      player.interactProgress += dt;
+      const pct = Math.min(100, (player.interactProgress / activeItem.holdTime) * 100);
+      barFill.style.width = pct + '%';
+      if (player.interactProgress >= activeItem.holdTime) {
+        player.interactProgress = 0;
+        barFill.style.width = '0%';
+        onInteractableCompleted(activeItem.id, false);
+      }
+    } else {
+      player.interactProgress = 0;
+      barFill.style.width = '0%';
+    }
+    return;
+  }
+
+  // Controlla se c'è un veicolo vicino per mostrare il suggerimento [F]
+  let nearCar = null;
+  let carDist = 7.0;
+  vehicles.forEach(v => {
+    const d = v.pos.distanceTo(player.pos);
+    if (d < carDist) {
+      carDist = d;
+      nearCar = v;
+    }
+  });
+
+  if (nearCar) {
+    promptEl.style.display = 'block';
+    textEl.textContent = `Premi [F] per salire su ${nearCar.name}`;
+    barBg.style.display = 'none';
+  } else {
+    promptEl.style.display = 'none';
+    player.interactProgress = 0;
+  }
+}
+
+// ============================================================================
 // 12. IA TATTICA GUARDIE, COORDINATORE SQUADRE A TURNO & AGGIRAMENTO OSTACOLI
 // ============================================================================
 let squadRotationTimer = 0;
@@ -3673,20 +3946,20 @@ function updateEnemiesAI(dt) {
   const m = MISSIONS[currentMissionIndex];
 
   // COORDINATORE TATTICO A TURNI:
-  // Ogni 3.5 secondi sceglie alcune guardie della missione e le manda all'attacco (max 4-5 alla volta oltre agli SWAT)
-  // così non restano mai tutte ferme e non ti caricano tutte e 30 contemporaneamente.
+  // Ogni 3.0 secondi sceglie alcune guardie della missione e le manda all'attacco (3-5 alla volta oltre agli SWAT)
+  // così non restano mai tutte ferme e non ti caricano tutte insieme.
   squadRotationTimer -= dt;
   if (squadRotationTimer <= 0) {
-    squadRotationTimer = 3.5;
+    squadRotationTimer = 3.0;
     const allMobileGuards = [];
     let activeSeekersCount = 0;
 
     entities.forEach(ent => {
       if (!ent.isEnemy || ent.stationary) return;
       const tInfo = getClosestPlayerTarget(ent.pos);
-      if (ent.aiRole === 'seeker' && tInfo.dist < 135) {
+      if (ent.aiRole === 'seeker') {
         activeSeekersCount++;
-      } else if (ent.aiRole === 'guard' && tInfo.dist < 120) {
+      } else if (ent.aiRole === 'guard') {
         allMobileGuards.push({ ent, dist: tInfo.dist });
       }
     });
@@ -3694,7 +3967,7 @@ function updateEnemiesAI(dt) {
     // Ordina le guardie dalla più vicina al giocatore
     allMobileGuards.sort((a, b) => a.dist - b.dist);
 
-    // Determina quante guardie devono venirti incontro attivamente in questo momento (3 in fase normale, 5 se scatta l'allarme)
+    // Mantiene sempre 3 cacciatori attivi (o 5 durante l'allarme); appena ne uccidi uno, un altro parte al suo posto!
     const desiredSeekers = heistState.alarmTriggered ? 5 : 3;
     const needed = Math.max(0, desiredSeekers - activeSeekersCount);
 
