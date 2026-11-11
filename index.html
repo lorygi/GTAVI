@@ -753,14 +753,14 @@
           <label>Sensibilità Mouse (<span id="sens-val">2.2</span>)</label>
           <input type="range" id="sens-slider" min="0.5" max="6.0" step="0.1" value="2.2" style="width:100%;">
         </div>
-        <button class="btn-small" id="btn-toggle-time">☀️ CAMBIA ORA: TRAMONTO / NOTTE</button>
+        <button class="btn-small" id="btn-toggle-time">🌅 METEO GTA VI: TRAMONTO / NOTTE NEON / GIORNO</button>
       </div>
     </div>
 
     <!-- Center Panel: Lavagna dei 5 Colpi (Heists) -->
     <div class="center-panel">
       <div class="logo-title">LOS SANTOS HEISTS</div>
-      <div class="logo-sub">EXPANDED OPEN-WORLD 700x700 • GTA V CO-OP</div>
+      <div class="logo-sub">GTA VI PBR GRAPHICS • 7-STAGE CO-OP HEISTS</div>
 
       <div class="selector-box">
         <div class="selector-header">
@@ -808,240 +808,28 @@
 
 <script>
 // ============================================================================
-// 1. RUOLI SQUADRA HEIST (5 CLASSI KRUNKER HD) E ARMI
+// 1. COSTANTI GLOBALI, RUOLI CREW (KRUNKER HD) E ARMI
 // ============================================================================
-const CLASSES = [
-  {
-    id: 'mastermind',
-    name: 'Mastermind (Leader)',
-    hp: 125,
-    armor: 100,
-    speedMult: 1.02,
-    color: 0xffaa00,
-    bodyColor: 0x1e3a8a,
-    hatStyle: 'headband',
-    primary: {
-      name: 'AK-47 Custom',
-      type: 'm4',
-      damage: 30,
-      headshotMult: 1.65,
-      fireRate: 98,
-      auto: true,
-      magSize: 32,
-      reloadTime: 1300,
-      spread: 0.007,
-      adsSpread: 0.001,
-      pellets: 1,
-      recoil: 0.0035,
-      adsFov: 52,
-      scope: false,
-      modelColor: 0x22262e,
-      accentColor: 0xb45309
-    },
-    secondary: {
-      name: 'Deagle .50',
-      type: 'pistol',
-      damage: 45,
-      headshotMult: 1.7,
-      fireRate: 230,
-      auto: false,
-      magSize: 9,
-      reloadTime: 1000,
-      spread: 0.009,
-      adsSpread: 0.0018,
-      pellets: 1,
-      recoil: 0.006,
-      adsFov: 58,
-      scope: false,
-      modelColor: 0xd4d4d8,
-      accentColor: 0x18181b
-    }
-  },
-  {
-    id: 'ghost',
-    name: 'Ghost (Cecchino One-Shot)',
-    hp: 105,
-    armor: 90,
-    speedMult: 1.06,
-    color: 0x00e5ff,
-    bodyColor: 0x065f46,
-    hatStyle: 'snipercap',
-    primary: {
-      name: 'Heavy Sniper .50 BMG',
-      type: 'sniper',
-      damage: 185,
-      headshotMult: 2.0,
-      fireRate: 820,
-      auto: false,
-      magSize: 6,
-      reloadTime: 1550,
-      spread: 0.035,
-      adsSpread: 0.0001,
-      pellets: 1,
-      recoil: 0.013,
-      adsFov: 22,
-      scope: true,
-      modelColor: 0x1f3a2e,
-      accentColor: 0x111111
-    },
-    secondary: {
-      name: 'Pistola Silenziata',
-      type: 'pistol',
-      damage: 36,
-      headshotMult: 1.75,
-      fireRate: 190,
-      auto: false,
-      magSize: 14,
-      reloadTime: 950,
-      spread: 0.008,
-      adsSpread: 0.0015,
-      pellets: 1,
-      recoil: 0.004,
-      adsFov: 56,
-      scope: false,
-      modelColor: 0x27272a,
-      accentColor: 0x00e5ff
-    }
-  },
-  {
-    id: 'enforcer',
-    name: 'Enforcer (Incursore SMG)',
-    hp: 120,
-    armor: 110,
-    speedMult: 1.15,
-    color: 0x2ecc71,
-    bodyColor: 0x0891b2,
-    hatStyle: 'backcap',
-    primary: {
-      name: 'Combat SMG MP5',
-      type: 'smg',
-      damage: 24,
-      headshotMult: 1.6,
-      fireRate: 70,
-      auto: true,
-      magSize: 40,
-      reloadTime: 1050,
-      spread: 0.01,
-      adsSpread: 0.0018,
-      pellets: 1,
-      recoil: 0.0026,
-      adsFov: 55,
-      scope: false,
-      modelColor: 0x18181b,
-      accentColor: 0x10b981
-    },
-    secondary: {
-      name: 'Deagle .50',
-      type: 'pistol',
-      damage: 45,
-      headshotMult: 1.7,
-      fireRate: 230,
-      auto: false,
-      magSize: 9,
-      reloadTime: 1000,
-      spread: 0.009,
-      adsSpread: 0.002,
-      pellets: 1,
-      recoil: 0.006,
-      adsFov: 56,
-      scope: false,
-      modelColor: 0xa1a1aa,
-      accentColor: 0x18181b
-    }
-  },
-  {
-    id: 'breacher',
-    name: 'Breacher (Demolitore)',
-    hp: 145,
-    armor: 135,
-    speedMult: 0.98,
-    color: 0xff3b3b,
-    bodyColor: 0x991b1b,
-    hatStyle: 'swathelm',
-    primary: {
-      name: 'Assault Shotgun Spas-12',
-      type: 'shotgun',
-      damage: 24,
-      headshotMult: 1.45,
-      fireRate: 360,
-      auto: false,
-      magSize: 8,
-      reloadTime: 1400,
-      spread: 0.054,
-      adsSpread: 0.032,
-      pellets: 8,
-      recoil: 0.013,
-      adsFov: 58,
-      scope: false,
-      modelColor: 0x27272a,
-      accentColor: 0xdc2626
-    },
-    secondary: {
-      name: 'Micro-SMG Automatica',
-      type: 'smg',
-      damage: 20,
-      headshotMult: 1.5,
-      fireRate: 78,
-      auto: true,
-      magSize: 30,
-      reloadTime: 1050,
-      spread: 0.014,
-      adsSpread: 0.004,
-      pellets: 1,
-      recoil: 0.004,
-      adsFov: 58,
-      scope: false,
-      modelColor: 0x3f3f46,
-      accentColor: 0xf59e0b
-    }
-  },
-  {
-    id: 'hitman',
-    name: 'Hitman (Sicario)',
-    hp: 115,
-    armor: 100,
-    speedMult: 1.08,
-    color: 0xc084fc,
-    bodyColor: 0x4c1d95,
-    hatStyle: 'fedora',
-    primary: {
-      name: 'Magnum Heavy Revolver',
-      type: 'revolver',
-      damage: 68,
-      headshotMult: 1.9,
-      fireRate: 310,
-      auto: false,
-      magSize: 6,
-      reloadTime: 1200,
-      spread: 0.006,
-      adsSpread: 0.0004,
-      pellets: 1,
-      recoil: 0.008,
-      adsFov: 50,
-      scope: false,
-      modelColor: 0xe4e4e7,
-      accentColor: 0x7c2d12
-    },
-    secondary: {
-      name: 'Carabina Compatta',
-      type: 'm4',
-      damage: 25,
-      headshotMult: 1.55,
-      fireRate: 92,
-      auto: true,
-      magSize: 28,
-      reloadTime: 1150,
-      spread: 0.01,
-      adsSpread: 0.002,
-      pellets: 1,
-      recoil: 0.0035,
-      adsFov: 55,
-      scope: false,
-      modelColor: 0x27272a,
-      accentColor: 0x9333ea
-    }
-  }
-];
+const SAFEHOUSE_POS = { x: 0, y: 0, z: 22 };
+
+const SECONDARY_DEAGLE = {
+  name: 'Desert Eagle .50',
+  type: 'pistol',
+  damage: 42,
+  headshotMult: 1.7,
+  fireRate: 220,
+  auto: false,
+  magSize: 9,
+  reloadTime: 1050,
+  spread: 0.008,
+  adsSpread: 0.0015,
+  pellets: 1,
+  recoil: 0.006,
+  adsFov: 56,
+  scope: false,
+  modelColor: 0xd4d4d8,
+  accentColor: 0x18181b
+};
 
 const KNIFE_WEAPON = {
   name: 'Coltello Tattico',
@@ -1063,141 +851,240 @@ const KNIFE_WEAPON = {
   accentColor: 0xef4444
 };
 
-// ============================================================================
-// 2. DEFINIZIONE DEI 5 GRANDI COLPI GTA V CO-OP (25-35 GUARDIE PER MISSIONE)
-// ============================================================================
-const SAFEHOUSE_POS = { x: 0, z: 20 };
-
-function generateSquadGuards(centerX, centerZ, count, radiusMin, radiusMax, roleName, hp, bodyColor, hat, dmg) {
-  const list = [];
-  for (let i = 0; i < count; i++) {
-    const angle = (i / count) * Math.PI * 2 + (i % 2) * 0.25;
-    const r = radiusMin + ((i * 7) % (radiusMax - radiusMin + 1));
-    list.push({
-      x: Math.round(centerX + Math.cos(angle) * r),
-      y: 0,
-      z: Math.round(centerZ + Math.sin(angle) * r),
-      role: roleName,
-      hp,
-      bodyColor,
-      hat,
-      dmg
-    });
+const CLASSES = [
+  {
+    id: 'mastermind',
+    name: 'Mastermind (Assalto)',
+    hp: 125,
+    armor: 100,
+    speedMult: 1.04,
+    color: 0xffaa00,
+    bodyColor: 0x1d4ed8,
+    hatStyle: 'headband',
+    primary: {
+      name: 'AK-47 Custom',
+      type: 'ak',
+      damage: 30,
+      headshotMult: 1.6,
+      fireRate: 100,
+      auto: true,
+      magSize: 32,
+      reloadTime: 1250,
+      spread: 0.007,
+      adsSpread: 0.001,
+      pellets: 1,
+      recoil: 0.0035,
+      adsFov: 52,
+      scope: false,
+      modelColor: 0x27272a,
+      accentColor: 0x9a3412
+    },
+    secondary: SECONDARY_DEAGLE
+  },
+  {
+    id: 'sharpshooter',
+    name: 'Marksman (Cecchino)',
+    hp: 105,
+    armor: 85,
+    speedMult: 1.08,
+    color: 0x00e5ff,
+    bodyColor: 0x15803d,
+    hatStyle: 'snipercap',
+    primary: {
+      name: 'AWP Heavy Sniper',
+      type: 'sniper',
+      damage: 185,
+      headshotMult: 1.8,
+      fireRate: 880,
+      auto: false,
+      magSize: 6,
+      reloadTime: 1500,
+      spread: 0.035,
+      adsSpread: 0.0001,
+      pellets: 1,
+      recoil: 0.012,
+      adsFov: 22,
+      scope: true,
+      modelColor: 0x14532d,
+      accentColor: 0x111111
+    },
+    secondary: SECONDARY_DEAGLE
+  },
+  {
+    id: 'infiltrator',
+    name: 'Ghost (Incursore SMG)',
+    hp: 115,
+    armor: 95,
+    speedMult: 1.18,
+    color: 0x2ecc71,
+    bodyColor: 0x0e7490,
+    hatStyle: 'backcap',
+    primary: {
+      name: 'MP5 Spec-Ops Silenziata',
+      type: 'smg',
+      damage: 21,
+      headshotMult: 1.55,
+      fireRate: 68,
+      auto: true,
+      magSize: 38,
+      reloadTime: 980,
+      spread: 0.011,
+      adsSpread: 0.002,
+      pellets: 1,
+      recoil: 0.0025,
+      adsFov: 58,
+      scope: false,
+      modelColor: 0x1e293b,
+      accentColor: 0x06b6d4
+    },
+    secondary: SECONDARY_DEAGLE
+  },
+  {
+    id: 'enforcer',
+    name: 'Enforcer (Demolitore)',
+    hp: 145,
+    armor: 125,
+    speedMult: 0.98,
+    color: 0xef4444,
+    bodyColor: 0x991b1b,
+    hatStyle: 'swathelm',
+    primary: {
+      name: 'SPAS-12 Tactical Shotgun',
+      type: 'shotgun',
+      damage: 22,
+      headshotMult: 1.4,
+      fireRate: 390,
+      auto: false,
+      magSize: 8,
+      reloadTime: 1350,
+      spread: 0.055,
+      adsSpread: 0.032,
+      pellets: 8,
+      recoil: 0.011,
+      adsFov: 60,
+      scope: false,
+      modelColor: 0x18181b,
+      accentColor: 0xdc2626
+    },
+    secondary: SECONDARY_DEAGLE
   }
-  return list;
-}
+];
 
+// ============================================================================
+// 2. DEFINIZIONE DELLE 5 GRANDI MISSIONI CO-OP A 7 FASI (HEISTS)
+// ============================================================================
 const MISSIONS = [
   {
     id: 'pacific_bank',
-    name: 'Colpo alla Pacific Standard (7 Fasi)',
+    name: 'Colpo alla Pacific Standard Bank',
     shortName: 'PACIFIC STANDARD',
-    desc: '7 Fasi: Disattiva allarmi, hackera l\'ufficio, fai saltare il Caveau con la dinamite, respingi l\'irruzione SWAT, svuota 4 casseforti e sfonda il posto di blocco.',
+    desc: '7 Fasi: Laser, PC Direttore, Dinamite Caveau, Assedio Volanti LSPD, 4 Casseforti e Fuga',
     reward: 280000,
-    difficulty: '★★★★★',
-    locationName: 'Pacific Standard Bank Plaza (Nord Downtown)',
+    difficulty: '★★★★☆ (Difficile)',
+    wantedOnAlarm: 4,
     targetPos: { x: 0, z: -185 },
-    entrancePos: { x: 0, z: -158 },
-    interiorPos: { x: 0, z: -195 },
-    wantedOnAlarm: 5,
+    entrancePos: { x: 0, z: -152 },
+    interiorPos: { x: 0, z: -188 },
     guards: [
-      { x: -16, y: 0, z: -165, role: 'Guardia Atrio Banca', hp: 155, bodyColor: 0x1e3a8a, hat: 'backcap', dmg: 15 },
-      { x: 16, y: 0, z: -165, role: 'Guardia Atrio Banca', hp: 155, bodyColor: 0x1e3a8a, hat: 'backcap', dmg: 15 },
-      { x: -14, y: 0, z: -182, role: 'Agente Sicurezza Banca', hp: 175, bodyColor: 0x172554, hat: 'swathelm', dmg: 17 },
-      { x: 14, y: 0, z: -182, role: 'Agente Sicurezza Banca', hp: 175, bodyColor: 0x172554, hat: 'swathelm', dmg: 17 },
-      { x: -8, y: 0, z: -194, role: 'Scorta Blindata Caveau', hp: 200, bodyColor: 0x0f172a, hat: 'swathelm', dmg: 19 },
-      { x: 8, y: 0, z: -194, role: 'Scorta Blindata Caveau', hp: 200, bodyColor: 0x0f172a, hat: 'swathelm', dmg: 19 },
-      { x: 0, y: 0, z: -188, role: 'CAPO SICUREZZA CORAZZATO', hp: 540, bodyColor: 0x090d16, hat: 'swathelm', dmg: 23, isBoss: true },
-      { x: -34, y: 8.5, z: -148, role: 'Cecchino Tetto Banca', hp: 145, bodyColor: 0x1e293b, hat: 'snipercap', dmg: 26, stationary: true },
-      { x: 34, y: 8.5, z: -148, role: 'Cecchino Tetto Banca', hp: 145, bodyColor: 0x1e293b, hat: 'snipercap', dmg: 26, stationary: true },
-      ...generateSquadGuards(0, -150, 10, 12, 34, 'Pattuglia Piazza Downtown', 155, 0x1e3a8a, 'swathelm', 16),
-      ...generateSquadGuards(0, -195, 8, 30, 48, 'Ronda Blindata Esterna', 165, 0x172554, 'backcap', 17)
+      { role: 'Cecchino Torre Ovest', x: -34, y: 8.6, z: -148, hp: 140, dmg: 24, bodyColor: 0x1e293b, hat: 'snipercap', stationary: true },
+      { role: 'Cecchino Torre Est', x: 34, y: 8.6, z: -148, hp: 140, dmg: 24, bodyColor: 0x1e293b, hat: 'snipercap', stationary: true },
+      { role: 'Guardia Giurata Atrio', x: -12, z: -165, hp: 150, dmg: 15, bodyColor: 0x1e3a8a, hat: 'backcap' },
+      { role: 'Guardia Giurata Atrio', x: 12, z: -165, hp: 150, dmg: 15, bodyColor: 0x1e3a8a, hat: 'backcap' },
+      { role: 'Guardia Scorta Direttore', x: -24, z: -188, hp: 170, dmg: 17, bodyColor: 0x1e3a8a, hat: 'swathelm' },
+      { role: 'Guardia Corridoio Est', x: 24, z: -188, hp: 170, dmg: 17, bodyColor: 0x1e3a8a, hat: 'swathelm' },
+      { role: 'Capo Sicurezza Caveau (BOSS)', x: 0, z: -194, hp: 580, dmg: 24, bodyColor: 0x090d16, hat: 'swathelm', isBoss: true },
+      { role: 'Sentinella Piazza Nord', x: -20, z: -144, hp: 145, dmg: 15, bodyColor: 0x334155, hat: 'backcap' },
+      { role: 'Sentinella Piazza Nord', x: 20, z: -144, hp: 145, dmg: 15, bodyColor: 0x334155, hat: 'backcap' }
     ]
   },
   {
     id: 'merryweather_docks',
-    name: 'Infiltrazione Moli Merryweather (7 Fasi)',
+    name: 'Infiltrazione ai Moli Merryweather',
     shortName: 'MOLI MERRYWEATHER',
-    desc: '7 Fasi: Sabota i radar, sblocca le gru, piazza la dinamite sul container blindato, combatti i rinforzi sui camion, ruba 4 carichi e disattiva il GPS.',
+    desc: '7 Fasi: Radar, Gru Portuale, Dinamite Hangar, Assalto Mercenari, 4 Carichi e Fuga',
     reward: 260000,
-    difficulty: '★★★★★',
-    locationName: 'Porto Industriale Merryweather (Sud-Est)',
-    targetPos: { x: 195, z: 175 },
-    entrancePos: { x: 195, z: 142 },
-    interiorPos: { x: 195, z: 198 },
+    difficulty: '★★★★☆ (Difficile)',
     wantedOnAlarm: 4,
+    targetPos: { x: 195, z: 175 },
+    entrancePos: { x: 195, z: 138 },
+    interiorPos: { x: 195, z: 192 },
     guards: [
-      { x: 152, y: 9.5, z: 145, role: 'Cecchino Torre Ovest', hp: 150, bodyColor: 0x14532d, hat: 'snipercap', dmg: 26, stationary: true },
-      { x: 238, y: 9.5, z: 145, role: 'Cecchino Torre Est', hp: 150, bodyColor: 0x14532d, hat: 'snipercap', dmg: 26, stationary: true },
-      { x: 195, y: 0, z: 198, role: 'COMANDANTE MERRYWEATHER', hp: 580, bodyColor: 0x18181b, hat: 'bossfedora', dmg: 25, isBoss: true },
-      ...generateSquadGuards(195, 165, 14, 10, 42, 'Mercenario Merryweather', 160, 0x3f3f46, 'headband', 16),
-      ...generateSquadGuards(195, 195, 12, 14, 46, 'Spec-Ops Molo Cargo', 185, 0x27272a, 'swathelm', 19)
+      { role: 'Cecchino Gru Portuale', x: 152, y: 8.6, z: 145, hp: 150, dmg: 25, bodyColor: 0x14532d, hat: 'snipercap', stationary: true },
+      { role: 'Cecchino Torre Est', x: 238, y: 8.6, z: 145, hp: 150, dmg: 25, bodyColor: 0x14532d, hat: 'snipercap', stationary: true },
+      { role: 'Mercenario Merryweather', x: 172, z: 158, hp: 165, dmg: 17, bodyColor: 0x15803d, hat: 'swathelm' },
+      { role: 'Mercenario Merryweather', x: 218, z: 158, hp: 165, dmg: 17, bodyColor: 0x15803d, hat: 'swathelm' },
+      { role: 'Mercenario Container', x: 195, z: 172, hp: 170, dmg: 18, bodyColor: 0x166534, hat: 'headband' },
+      { role: 'Mercenario Nave Cargo', x: 268, z: 190, hp: 175, dmg: 18, bodyColor: 0x166534, hat: 'swathelm' },
+      { role: 'Comandante Spec-Ops (BOSS)', x: 195, z: 202, hp: 620, dmg: 25, bodyColor: 0x052e16, hat: 'swathelm', isBoss: true }
     ]
   },
   {
     id: 'cartel_villa',
-    name: 'Raid alla Villa del Cartello (7 Fasi)',
+    name: 'Raid alla Villa del Cartello (El Rubio)',
     shortName: 'VILLA DEL CARTELLO',
-    desc: '7 Fasi: Sabota le centraline, ruba le 2 chiavi ai sicari, fai saltare il caveau di El Rubio, respingi i SUV del Cartello e la Polizia, ruba 4 tesori e sblocca il cancello.',
-    reward: 310000,
-    difficulty: '★★★★★',
-    locationName: 'Tenuta Fortificata El Rubio (Nord-Ovest)',
-    targetPos: { x: -195, z: -180 },
-    entrancePos: { x: -195, z: -128 },
-    interiorPos: { x: -195, z: -206 },
+    desc: '7 Fasi: Cancelli, Chiavi Gazebo, Dinamite Caveau, Sicari & Volanti, 4 Tesori e Fuga',
+    reward: 320000,
+    difficulty: '★★★★★ (Estrema)',
     wantedOnAlarm: 4,
+    targetPos: { x: -195, z: -185 },
+    entrancePos: { x: -195, z: -126 },
+    interiorPos: { x: -195, z: -198 },
     guards: [
-      { x: -195, y: 0, z: -206, role: 'BOSS EL RUBIO (CARTELLO)', hp: 850, bodyColor: 0xd97706, hat: 'bossfedora', dmg: 28, isBoss: true },
-      { x: -152, y: 8.5, z: -140, role: 'Vedetta Torretta Sud-Est', hp: 150, bodyColor: 0x7f1d1d, hat: 'snipercap', dmg: 26, stationary: true },
-      { x: -238, y: 8.5, z: -140, role: 'Vedetta Torretta Sud-Ovest', hp: 150, bodyColor: 0x7f1d1d, hat: 'snipercap', dmg: 26, stationary: true },
-      ...generateSquadGuards(-195, -162, 15, 12, 42, 'Sicario del Cartello', 165, 0x7f1d1d, 'headband', 17),
-      ...generateSquadGuards(-195, -198, 12, 10, 36, 'Guardia Scelta El Rubio', 200, 0x450a0a, 'fedora', 20)
+      { role: 'Vedetta Torre Ovest', x: -238, y: 8.6, z: -140, hp: 150, dmg: 24, bodyColor: 0x78350f, hat: 'snipercap', stationary: true },
+      { role: 'Vedetta Torre Est', x: -152, y: 8.6, z: -140, hp: 150, dmg: 24, bodyColor: 0x78350f, hat: 'snipercap', stationary: true },
+      { role: 'Sicario Piscina Ovest', x: -218, z: -155, hp: 170, dmg: 18, bodyColor: 0x9a3412, hat: 'headband' },
+      { role: 'Sicario Piscina Est', x: -172, z: -155, hp: 170, dmg: 18, bodyColor: 0x9a3412, hat: 'headband' },
+      { role: 'Guardia del Corpo Villa', x: -208, z: -186, hp: 185, dmg: 19, bodyColor: 0x7c2d12, hat: 'backcap' },
+      { role: 'Guardia del Corpo Villa', x: -182, z: -186, hp: 185, dmg: 19, bodyColor: 0x7c2d12, hat: 'backcap' },
+      { role: 'El Rubio Corazzato (BOSS)', x: -195, z: -206, hp: 720, dmg: 27, bodyColor: 0xb45309, hat: 'fedora', isBoss: true }
     ]
   },
   {
     id: 'humane_labs',
-    name: 'Blackout ai Laboratori Humane (7 Fasi)',
+    name: 'Blackout ai Laboratori Humane',
     shortName: 'LABORATORI HUMANE',
-    desc: '7 Fasi: Disattiva i sensori, sabota i reattori di raffreddamento, forza la camera criogenica, combatti i blindati NOOSE dentro il lab, ruba 4 sieri e cancella i server.',
+    desc: '7 Fasi: Torrette Laser, Reattori Criogenici, Carica Termica, Incursori NOOSE e 4 Sieri',
     reward: 350000,
-    difficulty: '★★★★★',
-    locationName: 'Complesso Ricerca Humane Labs (Nord-Est)',
-    targetPos: { x: 195, z: -180 },
-    entrancePos: { x: 195, z: -135 },
-    interiorPos: { x: 195, z: -198 },
+    difficulty: '★★★★★ (Estrema)',
     wantedOnAlarm: 5,
+    targetPos: { x: 195, z: -185 },
+    entrancePos: { x: 195, z: -136 },
+    interiorPos: { x: 195, z: -195 },
     guards: [
-      { x: 195, y: 0, z: -204, role: 'JUGGERNAUT BIO-LAB', hp: 780, bodyColor: 0x111827, hat: 'swathelm', dmg: 27, isBoss: true },
-      { x: 155, y: 8.5, z: -142, role: 'Tiratore Scelto Bio-Lab', hp: 150, bodyColor: 0x065f46, hat: 'snipercap', dmg: 26, stationary: true },
-      { x: 235, y: 8.5, z: -142, role: 'Tiratore Scelto Bio-Lab', hp: 150, bodyColor: 0x065f46, hat: 'snipercap', dmg: 26, stationary: true },
-      ...generateSquadGuards(195, -165, 15, 12, 44, 'Sicurezza Armata Humane', 165, 0x065f46, 'swathelm', 17),
-      ...generateSquadGuards(195, -195, 12, 10, 38, 'Unità Tattica Hazmat', 195, 0xca8a04, 'swathelm', 20)
+      { role: 'Cecchino Bio-Torre Ovest', x: 155, y: 8.6, z: -142, hp: 160, dmg: 25, bodyColor: 0x065f46, hat: 'snipercap', stationary: true },
+      { role: 'Cecchino Bio-Torre Est', x: 235, y: 8.6, z: -142, hp: 160, dmg: 25, bodyColor: 0x065f46, hat: 'snipercap', stationary: true },
+      { role: 'Unità Hazmat Armata', x: 175, z: -165, hp: 180, dmg: 19, bodyColor: 0x0284c7, hat: 'swathelm' },
+      { role: 'Unità Hazmat Armata', x: 215, z: -165, hp: 180, dmg: 19, bodyColor: 0x0284c7, hat: 'swathelm' },
+      { role: 'Guardia Criogenica', x: 175, z: -192, hp: 190, dmg: 20, bodyColor: 0x0f172a, hat: 'swathelm' },
+      { role: 'Guardia Criogenica', x: 215, z: -192, hp: 190, dmg: 20, bodyColor: 0x0f172a, hat: 'swathelm' },
+      { role: 'Juggernaut Bio-Lab (BOSS)', x: 195, z: -202, hp: 780, dmg: 28, bodyColor: 0x090d16, hat: 'swathelm', isBoss: true }
     ]
   },
   {
     id: 'fib_raid',
-    name: 'Operazione Dati Segreti FIB (7 Fasi)',
+    name: 'Operazione Mainframe Segreto FIB',
     shortName: 'QUARTIER GENERALE FIB',
-    desc: '7 Fasi: Sabota gli scanner, piazza 2 EMP, viola il Mainframe sotto assedio 5★ di auto FIB e squadre SWAT, recupera 4 Hard Disk e fai saltare il blocco stradale.',
+    desc: '7 Fasi: Scanner Biometrici, EMP, Hack Mainframe, Assedio 5★ SWAT, 4 Drive e Sfondamento',
     reward: 420000,
-    difficulty: '★★★★★',
-    locationName: 'Piazza Governativa & Torri FIB (Sud-Ovest)',
-    targetPos: { x: -195, z: 165 },
-    entrancePos: { x: -195, z: 128 },
-    interiorPos: { x: -195, z: 192 },
+    difficulty: '★★★★★ (Leggendaria)',
     wantedOnAlarm: 5,
+    targetPos: { x: -195, z: 175 },
+    entrancePos: { x: -195, z: 132 },
+    interiorPos: { x: -195, z: 192 },
     guards: [
-      { x: -195, y: 0, z: 188, role: 'COMANDANTE SUPREMO NOOSE', hp: 900, bodyColor: 0x090d16, hat: 'swathelm', dmg: 29, isBoss: true },
-      { x: -158, y: 8.5, z: 130, role: 'Cecchino Tetto FIB', hp: 155, bodyColor: 0x0f172a, hat: 'snipercap', dmg: 26, stationary: true },
-      { x: -232, y: 8.5, z: 130, role: 'Cecchino Tetto FIB', hp: 155, bodyColor: 0x0f172a, hat: 'snipercap', dmg: 26, stationary: true },
-      ...generateSquadGuards(-195, 150, 16, 12, 45, 'Agente Speciale FIB', 180, 0x1e293b, 'swathelm', 18),
-      ...generateSquadGuards(-195, 182, 15, 10, 38, 'Squadra Assalto NOOSE', 215, 0x0f172a, 'swathelm', 21)
+      { role: 'Cecchino FIB Ovest', x: -232, y: 8.6, z: 130, hp: 165, dmg: 26, bodyColor: 0x0f172a, hat: 'snipercap', stationary: true },
+      { role: 'Cecchino FIB Est', x: -158, y: 8.6, z: 130, hp: 165, dmg: 26, bodyColor: 0x0f172a, hat: 'snipercap', stationary: true },
+      { role: 'Agente Speciale FIB', x: -212, z: 155, hp: 185, dmg: 20, bodyColor: 0x1e293b, hat: 'swathelm' },
+      { role: 'Agente Speciale FIB', x: -178, z: 155, hp: 185, dmg: 20, bodyColor: 0x1e293b, hat: 'swathelm' },
+      { role: 'Squadra Tattica Mainframe', x: -212, z: 186, hp: 195, dmg: 21, bodyColor: 0x090d16, hat: 'swathelm' },
+      { role: 'Squadra Tattica Mainframe', x: -178, z: 186, hp: 195, dmg: 21, bodyColor: 0x090d16, hat: 'swathelm' },
+      { role: 'Direttore Tattico NOOSE (BOSS)', x: -195, z: 198, hp: 850, dmg: 30, bodyColor: 0x020617, hat: 'swathelm', isBoss: true }
     ]
   }
 ];
 
 // ============================================================================
-// 3. SINTETIZZATORE EFFETTI SONORI (WEB AUDIO API)
+// 3. SINTETIZZATORE SONORO WEB AUDIO API (SPARI, SIRENE, RICOMPENSE)
 // ============================================================================
 class SoundFX {
   constructor() { this.ctx = null; }
@@ -1214,17 +1101,17 @@ class SoundFX {
     const gain = this.ctx.createGain();
     if (type === 'sniper') {
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(175, now);
-      osc.frequency.exponentialRampToValueAtTime(24, now + 0.3);
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.exponentialRampToValueAtTime(24, now + 0.28);
       gain.gain.setValueAtTime(0.32, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.32);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
       osc.connect(gain); gain.connect(this.ctx.destination);
-      osc.start(now); osc.stop(now + 0.32);
+      osc.start(now); osc.stop(now + 0.3);
     } else if (type === 'shotgun') {
       osc.type = 'square';
       osc.frequency.setValueAtTime(120, now);
-      osc.frequency.exponentialRampToValueAtTime(22, now + 0.22);
-      gain.gain.setValueAtTime(0.3, now);
+      osc.frequency.exponentialRampToValueAtTime(20, now + 0.22);
+      gain.gain.setValueAtTime(0.32, now);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.24);
       osc.connect(gain); gain.connect(this.ctx.destination);
       osc.start(now); osc.stop(now + 0.24);
@@ -1252,8 +1139,8 @@ class SoundFX {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(isHeadshot ? 1050 : 620, now);
-    gain.gain.setValueAtTime(0.25, now);
+    osc.frequency.setValueAtTime(isHeadshot ? 1040 : 620, now);
+    gain.gain.setValueAtTime(0.24, now);
     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
     osc.connect(gain); gain.connect(this.ctx.destination);
     osc.start(now); osc.stop(now + 0.08);
@@ -1265,11 +1152,12 @@ class SoundFX {
     const gain = this.ctx.createGain();
     osc.type = 'sawtooth';
     osc.frequency.setValueAtTime(440, now);
-    osc.frequency.linearRampToValueAtTime(760, now + 0.25);
+    osc.frequency.linearRampToValueAtTime(780, now + 0.25);
+    osc.frequency.linearRampToValueAtTime(440, now + 0.5);
     gain.gain.setValueAtTime(0.18, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.52);
     osc.connect(gain); gain.connect(this.ctx.destination);
-    osc.start(now); osc.stop(now + 0.35);
+    osc.start(now); osc.stop(now + 0.52);
   }
   playReward() {
     if (!this.ctx) return;
@@ -1277,42 +1165,53 @@ class SoundFX {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(523.25, now);
-    osc.frequency.setValueAtTime(659.25, now + 0.12);
-    osc.frequency.setValueAtTime(783.99, now + 0.24);
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
+    osc.frequency.setValueAtTime(520, now);
+    osc.frequency.exponentialRampToValueAtTime(980, now + 0.18);
+    gain.gain.setValueAtTime(0.22, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
     osc.connect(gain); gain.connect(this.ctx.destination);
-    osc.start(now); osc.stop(now + 0.55);
+    osc.start(now); osc.stop(now + 0.2);
   }
 }
 const sfx = new SoundFX();
 
 // ============================================================================
-// 4. SETUP SCENA THREE.JS & CITTA' DI LOS SANTOS 3D
+// 4. SETUP SCENA THREE.JS & CITTA' DI LOS SANTOS 3D (MOTORE PBR GTA VI)
 // ============================================================================
 const canvas = document.getElementById('game-canvas');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.18;
 
 const scene = new THREE.Scene();
-let isNightMode = false;
-scene.background = new THREE.Color(0xd98a6c);
-scene.fog = new THREE.FogExp2(0xd98a6c, 0.0022);
+let timeOfDayMode = 0; // 0 = Tramonto GTA VI, 1 = Notte Vice Neon, 2 = Giorno Tropicale
+scene.background = new THREE.Color(0x2a1438);
+scene.fog = new THREE.FogExp2(0xd96b52, 0.0014);
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 900);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1100);
 const weaponGroup = new THREE.Group();
 camera.add(weaponGroup);
 scene.add(camera);
 
-const ambientLight = new THREE.AmbientLight(0xffe8d6, 0.72);
+// Flash dinamico di sparo (Muzzle PointLight)
+const muzzleLight = new THREE.PointLight(0xffaa33, 0, 14);
+camera.add(muzzleLight);
+
+// Illuminazione globale realistica: Luce Emisferica + Sole Direzionale Golden Hour
+const hemiLight = new THREE.HemisphereLight(0xff9e7d, 0x1e293b, 0.68);
+hemiLight.position.set(0, 300, 0);
+scene.add(hemiLight);
+
+const ambientLight = new THREE.AmbientLight(0xffe0cc, 0.35);
 scene.add(ambientLight);
 
-const dirLight = new THREE.DirectionalLight(0xffcfa3, 0.95);
-dirLight.position.set(220, 320, 180);
+const dirLight = new THREE.DirectionalLight(0xffb078, 1.35);
+dirLight.position.set(-240, 260, -290);
 dirLight.castShadow = true;
 dirLight.shadow.mapSize.width = 2048;
 dirLight.shadow.mapSize.height = 2048;
@@ -1320,7 +1219,158 @@ dirLight.shadow.camera.left = -360;
 dirLight.shadow.camera.right = 360;
 dirLight.shadow.camera.top = 360;
 dirLight.shadow.camera.bottom = -360;
+dirLight.shadow.bias = -0.0005;
 scene.add(dirLight);
+
+// Generatore Environment Map PBR (riflessi realistici su vetri, auto, acqua e armi)
+let envMapTexture = null;
+function generateGtaViEnvironmentMap(mode = 0) {
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileCubemapShader();
+  const envScene = new THREE.Scene();
+
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 256;
+  const ctx = c.getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 256);
+  if (mode === 0) {
+    // Tramonto GTA VI (Viola -> Magenta -> Arancio Oro -> Asfalto Riflettente)
+    grad.addColorStop(0.0, '#160b2e');
+    grad.addColorStop(0.32, '#6b1d5c');
+    grad.addColorStop(0.48, '#e85d3f');
+    grad.addColorStop(0.52, '#ffbe55');
+    grad.addColorStop(0.56, '#232733');
+    grad.addColorStop(1.0, '#090d16');
+  } else if (mode === 1) {
+    // Notte Vice Neon
+    grad.addColorStop(0.0, '#030613');
+    grad.addColorStop(0.45, '#0f172a');
+    grad.addColorStop(0.5, '#ec4899');
+    grad.addColorStop(0.55, '#06b6d4');
+    grad.addColorStop(1.0, '#020617');
+  } else {
+    // Giorno Tropicale Soleggiato
+    grad.addColorStop(0.0, '#0284c7');
+    grad.addColorStop(0.46, '#7dd3fc');
+    grad.addColorStop(0.52, '#fef08a');
+    grad.addColorStop(0.56, '#334155');
+    grad.addColorStop(1.0, '#1e293b');
+  }
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 512, 256);
+
+  // Luci città riflesse sull'orizzonte
+  for (let i = 0; i < 45; i++) {
+    ctx.fillStyle = i % 2 === 0 ? 'rgba(255, 0, 128, 0.45)' : 'rgba(0, 229, 255, 0.45)';
+    ctx.fillRect((i * 37) % 512, 126, 8, 12);
+  }
+
+  const envTex = new THREE.CanvasTexture(c);
+  envTex.encoding = THREE.sRGBEncoding;
+  const skySphere = new THREE.Mesh(
+    new THREE.SphereGeometry(100, 32, 16),
+    new THREE.MeshBasicMaterial({ map: envTex, side: THREE.BackSide })
+  );
+  envScene.add(skySphere);
+
+  const rt = pmrem.fromScene(envScene, 0.03);
+  if (envMapTexture) envMapTexture.dispose();
+  envMapTexture = rt.texture;
+  scene.environment = envMapTexture;
+  pmrem.dispose();
+}
+generateGtaViEnvironmentMap(0);
+
+// Cupola Cielo 3D Dinamica con Sole e Nuvole Volumetriche
+let skyDomeMesh = null;
+function createGtaViSkyDome(mode = 0) {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 512;
+  const ctx = c.getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 512);
+
+  if (mode === 0) {
+    grad.addColorStop(0.0, '#140a29');
+    grad.addColorStop(0.28, '#581c6b');
+    grad.addColorStop(0.45, '#d9464f');
+    grad.addColorStop(0.51, '#ff9e44');
+    grad.addColorStop(0.55, '#ffd166');
+    grad.addColorStop(1.0, '#1e222d');
+  } else if (mode === 1) {
+    grad.addColorStop(0.0, '#02040a');
+    grad.addColorStop(0.35, '#090d1f');
+    grad.addColorStop(0.5, '#1e1b4b');
+    grad.addColorStop(0.55, '#3b0764');
+    grad.addColorStop(1.0, '#090d16');
+  } else {
+    grad.addColorStop(0.0, '#0369a1');
+    grad.addColorStop(0.35, '#38bdf8');
+    grad.addColorStop(0.5, '#bae6fd');
+    grad.addColorStop(0.55, '#fef9c3');
+    grad.addColorStop(1.0, '#1e293b');
+  }
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1024, 512);
+
+  // Stelle per tramonto/notte
+  if (mode !== 2) {
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    for (let i = 0; i < 180; i++) {
+      const sx = (i * 173) % 1024;
+      const sy = (i * 71) % 170;
+      ctx.fillRect(sx, sy, 1.8, 1.8);
+    }
+  }
+
+  // Disco Solare / Lunare luminoso sull'orizzonte
+  const sunX = 240, sunY = 242;
+  const sunGrad = ctx.createRadialGradient(sunX, sunY, 4, sunX, sunY, mode === 1 ? 38 : 75);
+  if (mode === 0) {
+    sunGrad.addColorStop(0.0, 'rgba(255, 250, 210, 1)');
+    sunGrad.addColorStop(0.3, 'rgba(255, 165, 60, 0.85)');
+    sunGrad.addColorStop(1.0, 'rgba(255, 70, 80, 0)');
+  } else if (mode === 1) {
+    sunGrad.addColorStop(0.0, 'rgba(240, 249, 255, 0.95)');
+    sunGrad.addColorStop(0.4, 'rgba(56, 189, 248, 0.4)');
+    sunGrad.addColorStop(1.0, 'rgba(56, 189, 248, 0)');
+  } else {
+    sunGrad.addColorStop(0.0, 'rgba(255, 255, 255, 1)');
+    sunGrad.addColorStop(0.4, 'rgba(253, 224, 71, 0.65)');
+    sunGrad.addColorStop(1.0, 'rgba(253, 224, 71, 0)');
+  }
+  ctx.fillStyle = sunGrad;
+  ctx.beginPath();
+  ctx.arc(sunX, sunY, 80, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Strati di nuvole leggere all'orizzonte
+  for (let i = 0; i < 36; i++) {
+    const cx = (i * 89) % 1024;
+    const cy = 175 + (i % 5) * 14;
+    const cw = 90 + (i % 4) * 35;
+    ctx.fillStyle = mode === 0 ? 'rgba(255, 140, 105, 0.16)' : (mode === 1 ? 'rgba(192, 132, 252, 0.08)' : 'rgba(255, 255, 255, 0.25)');
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, cw, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.encoding = THREE.sRGBEncoding;
+
+  if (!skyDomeMesh) {
+    const geo = new THREE.SphereGeometry(680, 32, 24);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false, depthWrite: false });
+    skyDomeMesh = new THREE.Mesh(geo, mat);
+    scene.add(skyDomeMesh);
+  } else {
+    if (skyDomeMesh.material.map) skyDomeMesh.material.map.dispose();
+    skyDomeMesh.material.map = tex;
+    skyDomeMesh.material.needsUpdate = true;
+  }
+}
+createGtaViSkyDome(0);
 
 const cityGroup = new THREE.Group();
 scene.add(cityGroup);
@@ -1339,6 +1389,7 @@ const vehicles = [];
 const policeConvoyVehicles = [];
 const interactables = [];
 const thrownKnives = [];
+let oceanMesh = null;
 
 let vaultDoorCollider = null;
 let vaultDoorMesh = null;
@@ -1349,79 +1400,153 @@ let isPlaying = false;
 let mouseSensitivity = 2.2;
 
 // ============================================================================
-// 5. TEXTURE PROCEDURALI REALISTICHE & ARCHITETTURA EDIFICI (700x700 OPEN WORLD)
+// 5. TEXTURE PROCEDURALI PBR REALISTICHE & ARCHITETTURA GTA VI (700x700)
 // ============================================================================
 const TEX_CACHE = {};
 
-function createBuildingTexture(style, baseHex, winLitHex = '#fef08a', winDarkHex = '#1e293b') {
-  const key = `${style}_${baseHex}_${winLitHex}`;
-  if (TEX_CACHE[key]) return TEX_CACHE[key];
-
+function createAsphaltTexture() {
+  if (TEX_CACHE['asphalt_pbr']) return TEX_CACHE['asphalt_pbr'];
   const c = document.createElement('canvas');
   c.width = 256;
   c.height = 256;
   const ctx = c.getContext('2d');
-
-  ctx.fillStyle = baseHex;
+  ctx.fillStyle = '#181c24';
   ctx.fillRect(0, 0, 256, 256);
 
+  // Grana realistica dell'asfalto e riflessi umidi
+  for (let i = 0; i < 2400; i++) {
+    const x = (i * 73) % 256;
+    const y = (i * 41) % 256;
+    ctx.fillStyle = (i % 3 === 0) ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.22)';
+    ctx.fillRect(x, y, 2, 2);
+  }
+  // Tracce di pneumatici lungo le corsie
+  ctx.fillStyle = 'rgba(10, 12, 16, 0.32)';
+  ctx.fillRect(52, 0, 24, 256);
+  ctx.fillRect(180, 0, 24, 256);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.encoding = THREE.sRGBEncoding;
+  TEX_CACHE['asphalt_pbr'] = tex;
+  return tex;
+}
+
+function createBuildingTexture(style, baseHex, winLitHex = '#fef08a', winDarkHex = '#0f172a') {
+  const key = `${style}_${baseHex}_${winLitHex}`;
+  if (TEX_CACHE[key]) return TEX_CACHE[key];
+
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 512;
+  const ctx = c.getContext('2d');
+
+  ctx.fillStyle = baseHex;
+  ctx.fillRect(0, 0, 512, 512);
+
   if (style === 'skyscraper') {
-    ctx.strokeStyle = 'rgba(15, 23, 42, 0.85)';
-    ctx.lineWidth = 4;
-    const cols = 4, rows = 8;
-    const cw = 256 / cols, rh = 256 / rows;
+    // Facciata continua in vetro riflettente (Curtain Wall) con interni illuminati e riflessi obliqui
+    const cols = 8, rows = 12;
+    const cw = 512 / cols, rh = 512 / rows;
     for (let r = 0; r < rows; r++) {
       for (let col = 0; col < cols; col++) {
-        const isLit = ((r * 7 + col * 13) % 5 === 0);
-        ctx.fillStyle = isLit ? winLitHex : winDarkHex;
-        ctx.fillRect(col * cw + 5, r * rh + 4, cw - 10, rh - 8);
-        ctx.fillStyle = 'rgba(255,255,255,0.08)';
-        ctx.fillRect(col * cw + 5, r * rh + 4, (cw - 10) * 0.45, rh - 8);
+        const seed = (r * 17 + col * 31) % 11;
+        const wx = col * cw + 4;
+        const wy = r * rh + 4;
+        const ww = cw - 8;
+        const wh = rh - 8;
+
+        const wGrad = ctx.createLinearGradient(wx, wy, wx + ww, wy + wh);
+        if (seed === 0 || seed === 4) {
+          // Ufficio illuminato caldo
+          wGrad.addColorStop(0, '#fef08a');
+          wGrad.addColorStop(1, '#f59e0b');
+        } else if (seed === 7) {
+          // Stanza con neon ciano/magenta stile Vice
+          wGrad.addColorStop(0, '#38bdf8');
+          wGrad.addColorStop(1, '#0284c7');
+        } else {
+          // Vetro scuro specchiato
+          wGrad.addColorStop(0, '#1e293b');
+          wGrad.addColorStop(0.5, '#0f172a');
+          wGrad.addColorStop(1, '#334155');
+        }
+        ctx.fillStyle = wGrad;
+        ctx.fillRect(wx, wy, ww, wh);
+
+        // Riflesso diagonale sul vetro e veneziane
+        ctx.fillStyle = 'rgba(255,255,255,0.12)';
+        ctx.fillRect(wx, wy, ww * 0.35, wh);
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.5)';
+        ctx.fillRect(wx, wy + wh - 6, ww, 6);
       }
     }
-  } else if (style === 'office' || style === 'brick') {
-    for (let y = 0; y < 256; y += 16) {
-      ctx.fillStyle = 'rgba(0,0,0,0.12)';
-      ctx.fillRect(0, y, 256, 2);
+    // Montanti metallici strutturali
+    ctx.strokeStyle = '#090d16';
+    ctx.lineWidth = 4;
+    for (let cIdx = 0; cIdx <= cols; cIdx++) {
+      ctx.beginPath(); ctx.moveTo(cIdx * cw, 0); ctx.lineTo(cIdx * cw, 512); ctx.stroke();
     }
-    const cols = 4, rows = 4;
-    const cw = 256 / cols, rh = 256 / rows;
+  } else if (style === 'office' || style === 'brick') {
+    for (let y = 0; y < 512; y += 16) {
+      ctx.fillStyle = 'rgba(0,0,0,0.14)';
+      ctx.fillRect(0, y, 512, 3);
+    }
+    const cols = 6, rows = 6;
+    const cw = 512 / cols, rh = 512 / rows;
     for (let r = 0; r < rows; r++) {
       for (let col = 0; col < cols; col++) {
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(col * cw + 10, r * rh + 12, cw - 20, rh - 22);
-        const isLit = ((r + col) % 3 === 0);
-        ctx.fillStyle = isLit ? '#fde047' : '#334155';
-        ctx.fillRect(col * cw + 13, r * rh + 15, cw - 26, rh - 28);
+        // Cornice finestra in pietra/alluminio
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(col * cw + 12, r * rh + 14, cw - 24, rh - 26);
+        const isLit = ((r * 3 + col * 5) % 4 === 0);
+        ctx.fillStyle = isLit ? '#fde047' : '#1e3a5f';
+        ctx.fillRect(col * cw + 16, r * rh + 18, cw - 32, rh - 34);
+        // Davanzale sporgente disegnato
+        ctx.fillStyle = 'rgba(255,255,255,0.28)';
+        ctx.fillRect(col * cw + 10, r * rh + rh - 12, cw - 20, 5);
       }
     }
   } else if (style === 'container') {
-    for (let x = 0; x < 256; x += 16) {
-      ctx.fillStyle = (x % 32 === 0) ? 'rgba(0,0,0,0.22)' : 'rgba(255,255,255,0.08)';
-      ctx.fillRect(x, 0, 8, 256);
+    for (let x = 0; x < 512; x += 16) {
+      ctx.fillStyle = (x % 32 === 0) ? 'rgba(0,0,0,0.28)' : 'rgba(255,255,255,0.1)';
+      ctx.fillRect(x, 0, 8, 512);
     }
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.lineWidth = 6;
-    ctx.strokeRect(4, 4, 248, 248);
+    ctx.strokeStyle = 'rgba(255,255,255,0.38)';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(6, 6, 500, 500);
   } else if (style === 'marble') {
-    ctx.strokeStyle = 'rgba(0,0,0,0.14)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.16)';
     ctx.lineWidth = 3;
-    for (let i = 0; i <= 256; i += 64) {
-      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 256); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(256, i); ctx.stroke();
+    for (let i = 0; i <= 512; i += 64) {
+      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 512); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke();
+    }
+    // Venature del marmo
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 12; i++) {
+      ctx.beginPath();
+      ctx.moveTo((i * 53) % 512, 0);
+      ctx.lineTo(((i * 53) + 140) % 512, 512);
+      ctx.stroke();
     }
   } else if (style === 'concrete') {
-    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.22)';
     ctx.lineWidth = 3;
-    for (let i = 0; i <= 256; i += 64) {
+    for (let i = 0; i <= 512; i += 64) {
       ctx.strokeRect(i, 0, 64, 128);
       ctx.strokeRect(i, 128, 64, 128);
+      ctx.strokeRect(i, 256, 64, 128);
+      ctx.strokeRect(i, 384, 64, 128);
     }
   }
 
   const tex = new THREE.CanvasTexture(c);
   tex.wrapS = THREE.RepeatWrapping;
   tex.wrapT = THREE.RepeatWrapping;
+  tex.encoding = THREE.sRGBEncoding;
   TEX_CACHE[key] = tex;
   return tex;
 }
@@ -1429,15 +1554,48 @@ function createBuildingTexture(style, baseHex, winLitHex = '#fef08a', winDarkHex
 function addBlock(x, y, z, w, h, d, color, hasCollision = true, showOnRadar = true, emissiveHex = 0x000000, texStyle = null) {
   const geo = new THREE.BoxGeometry(w, h, d);
   let mat;
+
+  // Configurazione PBR (Roughness & Metalness) in base al materiale
+  let roughness = 0.65;
+  let metalness = 0.12;
+  if (texStyle === 'skyscraper') {
+    roughness = 0.14;
+    metalness = 0.86;
+  } else if (texStyle === 'marble') {
+    roughness = 0.2;
+    metalness = 0.25;
+  } else if (texStyle === 'container') {
+    roughness = 0.42;
+    metalness = 0.65;
+  } else if (texStyle === 'office') {
+    roughness = 0.35;
+    metalness = 0.45;
+  } else if (emissiveHex !== 0x000000) {
+    roughness = 0.2;
+    metalness = 0.3;
+  }
+
   if (texStyle) {
     const hexStr = '#' + color.toString(16).padStart(6, '0');
     const baseTex = createBuildingTexture(texStyle, hexStr);
     const clonedTex = baseTex.clone();
     clonedTex.needsUpdate = true;
     clonedTex.repeat.set(Math.max(1, Math.round(Math.max(w, d) / 14)), Math.max(1, Math.round(h / 12)));
-    mat = new THREE.MeshLambertMaterial({ map: clonedTex, emissive: emissiveHex });
+    mat = new THREE.MeshStandardMaterial({
+      map: clonedTex,
+      roughness,
+      metalness,
+      emissive: emissiveHex,
+      emissiveIntensity: emissiveHex !== 0x000000 ? 0.85 : 0
+    });
   } else {
-    mat = new THREE.MeshLambertMaterial({ color, emissive: emissiveHex });
+    mat = new THREE.MeshStandardMaterial({
+      color,
+      roughness,
+      metalness,
+      emissive: emissiveHex,
+      emissiveIntensity: emissiveHex !== 0x000000 ? 1.1 : 0
+    });
   }
 
   const mesh = new THREE.Mesh(geo, mat);
@@ -1464,49 +1622,74 @@ function addBlock(x, y, z, w, h, d, color, hasCollision = true, showOnRadar = tr
 }
 
 function addDetailedBuilding(x, z, w, h, d, colorHex, style = 'skyscraper', neonColor = null) {
+  // Corpo principale PBR con vetrate riflettenti
   addBlock(x, h / 2, z, w, h, d, colorHex, true, true, 0x000000, style);
-  addBlock(x, 2.2, z, w + 0.6, 4.4, d + 0.6, 0x1e293b, false, false);
-  addBlock(x, h + 0.6, z, w + 1.0, 1.2, d + 1.0, 0x0f172a, false, false);
-  addBlock(x - w * 0.22, h + 1.8, z - d * 0.2, 3.6, 2.2, 3.6, 0x64748b, false, false);
-  addBlock(x + w * 0.22, h + 1.5, z + d * 0.2, 2.8, 1.8, 4.2, 0x475569, false, false);
+  // Lobby al piano terra vetrata e illuminata
+  addBlock(x, 2.4, z, w + 0.8, 4.8, d + 0.8, 0x0f172a, false, false, 0x000000, 'skyscraper');
+  // Cornicioni marcapiano architettonici
+  if (h >= 30) {
+    addBlock(x, h * 0.5, z, w + 0.5, 0.7, d + 0.5, 0x1e293b, false, false);
+  }
+  // Attico superiore e tetto tecnico
+  addBlock(x, h + 0.7, z, w + 1.2, 1.4, d + 1.2, 0x0f172a, false, false);
+  addBlock(x - w * 0.22, h + 2.0, z - d * 0.2, 3.8, 2.4, 3.8, 0x64748b, false, false, 0x000000, 'container');
+  addBlock(x + w * 0.22, h + 1.7, z + d * 0.2, 3.0, 2.0, 4.4, 0x475569, false, false);
+  // Antenna radio con luce di segnalazione aerea rossa in cima ai grattacieli
+  if (h >= 40) {
+    addBlock(x, h + 6.0, z, 0.35, 9.0, 0.35, 0x94a3b8, false, false);
+    addBlock(x, h + 10.7, z, 0.7, 0.7, 0.7, 0xff1111, false, false, 0xff0000);
+  }
 
   if (neonColor) {
-    addBlock(x, h - 2.5, z + d / 2 + 0.3, w * 0.65, 1.4, 0.4, neonColor, false, false, neonColor);
-    addBlock(x, h - 2.5, z - d / 2 - 0.3, w * 0.65, 1.4, 0.4, neonColor, false, false, neonColor);
+    // Insegne al Neon Vice City lungo l'attico e gli spigoli verticali
+    addBlock(x, h - 2.5, z + d / 2 + 0.35, w * 0.72, 1.5, 0.45, neonColor, false, false, neonColor);
+    addBlock(x, h - 2.5, z - d / 2 - 0.35, w * 0.72, 1.5, 0.45, neonColor, false, false, neonColor);
+    addBlock(x - w / 2 - 0.2, h * 0.55, z + d / 2 + 0.2, 0.4, h * 0.7, 0.4, neonColor, false, false, neonColor);
+    addBlock(x + w / 2 + 0.2, h * 0.55, z + d / 2 + 0.2, 0.4, h * 0.7, 0.4, neonColor, false, false, neonColor);
   }
 }
 
 function addPalmTree(x, z, scale = 1.0) {
   const g = new THREE.Group();
-  const trunkMat = new THREE.MeshLambertMaterial({ color: 0x6e472b });
-  const segments = 5;
+  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x6e472b, roughness: 0.88 });
+  const segments = 6;
   for (let i = 0; i < segments; i++) {
-    const seg = new THREE.Mesh(new THREE.BoxGeometry(0.85 - i * 0.08, 2.1, 0.85 - i * 0.08), trunkMat);
-    seg.position.set(i * 0.12, 1.05 + i * 1.95, 0);
-    seg.rotation.z = -0.04 * i;
+    const rTop = 0.42 - i * 0.045;
+    const rBot = 0.46 - i * 0.045;
+    const seg = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBot, 1.9, 7), trunkMat);
+    seg.position.set(i * 0.14, 0.95 + i * 1.75, 0);
+    seg.rotation.z = -0.045 * i;
     seg.castShadow = true;
     g.add(seg);
   }
-  const topX = (segments - 1) * 0.12;
-  const topY = 1.05 + (segments - 1) * 1.95 + 1.0;
+  const topX = (segments - 1) * 0.14;
+  const topY = 0.95 + (segments - 1) * 1.75 + 0.9;
 
-  const cocoMat = new THREE.MeshLambertMaterial({ color: 0x451a03 });
-  const coco = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.6, 1.1), cocoMat);
-  coco.position.set(topX, topY - 0.3, 0);
+  // Anello luminoso al neon alla base della palma (stile Ocean Drive GTA VI)
+  const neonRing = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.55, 0.55, 0.22, 10),
+    new THREE.MeshBasicMaterial({ color: (Math.abs(x + z) % 2 === 0) ? 0xff007f : 0x00e5ff })
+  );
+  neonRing.position.set(0.1, 1.6, 0);
+  g.add(neonRing);
+
+  const cocoMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.7 });
+  const coco = new THREE.Mesh(new THREE.SphereGeometry(0.55, 6, 6), cocoMat);
+  coco.position.set(topX, topY - 0.25, 0);
   g.add(coco);
 
-  const leafMat = new THREE.MeshLambertMaterial({ color: 0x15803d });
-  for (let i = 0; i < 6; i++) {
-    const angle = (i * Math.PI) / 3;
+  const leafMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.55 });
+  for (let i = 0; i < 7; i++) {
+    const angle = (i * Math.PI * 2) / 7;
     const frondPivot = new THREE.Group();
     frondPivot.position.set(topX, topY, 0);
     frondPivot.rotation.y = angle;
-    const leaf1 = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.25, 0.95), leafMat);
-    leaf1.position.set(1.3, 0.1, 0);
-    leaf1.rotation.z = -0.18;
-    const leaf2 = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.2, 0.75), leafMat);
-    leaf2.position.set(3.4, -0.55, 0);
-    leaf2.position.z = -0.48;
+    const leaf1 = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.18, 0.9), leafMat);
+    leaf1.position.set(1.3, 0.12, 0);
+    leaf1.rotation.z = -0.16;
+    const leaf2 = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.14, 0.68), leafMat);
+    leaf2.position.set(3.4, -0.52, 0);
+    leaf2.rotation.z = -0.46;
     frondPivot.add(leaf1, leaf2);
     g.add(frondPivot);
   }
@@ -1527,23 +1710,23 @@ function addPalmTree(x, z, scale = 1.0) {
 function addLushTree(x, z, scale = 1.0) {
   const g = new THREE.Group();
   const trunk = new THREE.Mesh(
-    new THREE.BoxGeometry(1.1, 4.2, 1.1),
-    new THREE.MeshLambertMaterial({ color: 0x5c3a21 })
+    new THREE.CylinderGeometry(0.45, 0.65, 4.2, 7),
+    new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.85 })
   );
   trunk.position.y = 2.1;
   trunk.castShadow = true;
   g.add(trunk);
 
-  const fMat1 = new THREE.MeshLambertMaterial({ color: 0x166534 });
-  const fMat2 = new THREE.MeshLambertMaterial({ color: 0x15803d });
-  const crown1 = new THREE.Mesh(new THREE.BoxGeometry(4.8, 2.8, 4.8), fMat1);
-  crown1.position.y = 4.8;
+  const fMat1 = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.65 });
+  const fMat2 = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.6 });
+  const crown1 = new THREE.Mesh(new THREE.DodecahedronGeometry(2.8, 1), fMat1);
+  crown1.position.y = 5.0;
   crown1.castShadow = true;
-  const crown2 = new THREE.Mesh(new THREE.BoxGeometry(3.6, 2.4, 3.6), fMat2);
-  crown2.position.y = 6.8;
+  const crown2 = new THREE.Mesh(new THREE.DodecahedronGeometry(2.1, 1), fMat2);
+  crown2.position.set(0.6, 6.8, 0.4);
   crown2.castShadow = true;
-  const crown3 = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.8, 2.2), fMat1);
-  crown3.position.y = 8.4;
+  const crown3 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.7, 1), fMat1);
+  crown3.position.set(-0.6, 7.6, -0.3);
   g.add(crown1, crown2, crown3);
 
   g.position.set(x, 0, z);
@@ -1561,17 +1744,28 @@ function addLushTree(x, z, scale = 1.0) {
 
 function addStreetLight(x, z, rotY = 0) {
   const g = new THREE.Group();
-  const poleMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
-  const pole = new THREE.Mesh(new THREE.BoxGeometry(0.35, 8.5, 0.35), poleMat);
-  pole.position.y = 4.25;
-  const arm = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.25, 0.35), poleMat);
-  arm.position.set(1.0, 8.4, 0);
+  const poleMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.25 });
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 8.6, 8), poleMat);
+  pole.position.y = 4.3;
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.22, 0.28), poleMat);
+  arm.position.set(1.05, 8.45, 0);
   const bulb = new THREE.Mesh(
-    new THREE.BoxGeometry(0.8, 0.2, 0.5),
-    new THREE.MeshBasicMaterial({ color: 0xfef08a })
+    new THREE.BoxGeometry(0.9, 0.22, 0.55),
+    new THREE.MeshBasicMaterial({ color: 0xffe89e })
   );
-  bulb.position.set(1.9, 8.25, 0);
-  g.add(pole, arm, bulb);
+  bulb.position.set(1.95, 8.3, 0);
+  // Cono di luce volumetrica sotto il lampione
+  const coneGeo = new THREE.ConeGeometry(3.2, 8.2, 12, 1, true);
+  const coneMat = new THREE.MeshBasicMaterial({
+    color: 0xffd580,
+    transparent: true,
+    opacity: 0.08,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  });
+  const lightCone = new THREE.Mesh(coneGeo, coneMat);
+  lightCone.position.set(1.95, 4.1, 0);
+  g.add(pole, arm, bulb, lightCone);
   g.position.set(x, 0, z);
   g.rotation.y = rotY;
   cityGroup.add(g);
@@ -1591,35 +1785,66 @@ function addGuardTower(x, z, colorHex = 0x475569) {
 }
 
 function buildLosSantosCity() {
+  const groundTex = createBuildingTexture('concrete', '#27352c').clone();
+  groundTex.needsUpdate = true;
+  groundTex.repeat.set(60, 60);
   const groundGeo = new THREE.PlaneGeometry(740, 740);
-  const groundMat = new THREE.MeshLambertMaterial({ color: 0x334238 });
+  const groundMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.85, metalness: 0.05 });
   const ground = new THREE.Mesh(groundGeo, groundMat);
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   cityGroup.add(ground);
 
-  // Specchio d'acqua Oceano/Porto a Sud-Est
-  addBlock(265, 0.04, 245, 170, 0.1, 170, 0x0284c7, false, true, 0x0369a1);
+  // Specchio d'acqua Oceano/Porto a Sud-Est con riflessi PBR speculari
+  const waterGeo = new THREE.BoxGeometry(170, 0.2, 170);
+  const waterMat = new THREE.MeshStandardMaterial({
+    color: 0x0284c7,
+    roughness: 0.08,
+    metalness: 0.88,
+    emissive: 0x0369a1,
+    emissiveIntensity: 0.22
+  });
+  oceanMesh = new THREE.Mesh(waterGeo, waterMat);
+  oceanMesh.position.set(265, 0.06, 245);
+  cityGroup.add(oceanMesh);
+  radarBuildings.push({ x: 265, z: 245, w: 170, d: 170, color: 0x0284c7 });
 
-  const roadColor = 0x1e2229;
-  const swColor = 0x64748b;
+  // Strade asfaltate con riflessi realistici (Wet-Look PBR) e marciapiedi piastrellati
+  const asphaltBase = createAsphaltTexture();
+  const swColor = 0x94a3b8;
   [-115, 0, 115].forEach(rx => {
-    addBlock(rx, 0.06, 0, 24, 0.12, 680, roadColor, false, false);
-    addBlock(rx - 13.5, 0.12, 0, 3, 0.24, 680, swColor, false, false);
-    addBlock(rx + 13.5, 0.12, 0, 3, 0.24, 680, swColor, false, false);
+    const rTex = asphaltBase.clone();
+    rTex.needsUpdate = true;
+    rTex.repeat.set(2, 55);
+    const rMat = new THREE.MeshStandardMaterial({ map: rTex, roughness: 0.28, metalness: 0.22 });
+    const rMesh = new THREE.Mesh(new THREE.BoxGeometry(24, 0.14, 680), rMat);
+    rMesh.position.set(rx, 0.07, 0);
+    rMesh.receiveShadow = true;
+    cityGroup.add(rMesh);
+
+    addBlock(rx - 13.5, 0.14, 0, 3, 0.28, 680, swColor, false, false, 0x000000, 'marble');
+    addBlock(rx + 13.5, 0.14, 0, 3, 0.28, 680, swColor, false, false, 0x000000, 'marble');
   });
   [-105, 0, 105].forEach(rz => {
-    addBlock(0, 0.07, rz, 680, 0.12, 24, roadColor, false, false);
-    addBlock(0, 0.13, rz - 13.5, 680, 0.24, 3, swColor, false, false);
-    addBlock(0, 0.13, rz + 13.5, 680, 0.24, 3, swColor, false, false);
+    const rTex = asphaltBase.clone();
+    rTex.needsUpdate = true;
+    rTex.repeat.set(55, 2);
+    const rMat = new THREE.MeshStandardMaterial({ map: rTex, roughness: 0.28, metalness: 0.22 });
+    const rMesh = new THREE.Mesh(new THREE.BoxGeometry(680, 0.14, 24), rMat);
+    rMesh.position.set(0, 0.08, rz);
+    rMesh.receiveShadow = true;
+    cityGroup.add(rMesh);
+
+    addBlock(0, 0.15, rz - 13.5, 680, 0.28, 3, swColor, false, false, 0x000000, 'marble');
+    addBlock(0, 0.15, rz + 13.5, 680, 0.28, 3, swColor, false, false, 0x000000, 'marble');
   });
 
   for (let i = -320; i <= 320; i += 18) {
     [-115, 0, 115].forEach(rx => {
-      addBlock(rx, 0.14, i, 0.45, 0.04, 7.5, 0xfacc15, false, false);
+      addBlock(rx, 0.16, i, 0.45, 0.04, 7.5, 0xfacc15, false, false, 0xfacc15);
     });
     [-105, 0, 105].forEach(rz => {
-      addBlock(i, 0.15, rz, 7.5, 0.04, 0.45, 0xfacc15, false, false);
+      addBlock(i, 0.17, rz, 7.5, 0.04, 0.45, 0xfacc15, false, false, 0xfacc15);
     });
   }
 
@@ -1805,48 +2030,88 @@ function buildLosSantosCity() {
 }
 
 // ============================================================================
-// 6. VEICOLI 3D GUIDABILI (FISICA AUTO, FARI E VISUALE 3ª PERSONA GTA V)
+// 6. VEICOLI 3D GUIDABILI (CARROZZERIA METALLIZZATA PBR GTA VI & FARI LED)
 // ============================================================================
 function createVehicleMesh(name, bodyColor, isVan = false, hasPoliceSirens = false) {
   const g = new THREE.Group();
-  const matBody = new THREE.MeshLambertMaterial({ color: bodyColor });
-  const matCabin = new THREE.MeshLambertMaterial({ color: 0x1e293b });
-  const matWheel = new THREE.MeshLambertMaterial({ color: 0x09090b });
-  const matHeadlight = new THREE.MeshBasicMaterial({ color: 0xfef08a });
-  const matTaillight = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+  const matBody = new THREE.MeshStandardMaterial({
+    color: bodyColor,
+    metalness: isVan ? 0.65 : 0.88,
+    roughness: isVan ? 0.28 : 0.14
+  });
+  const matCabin = new THREE.MeshStandardMaterial({
+    color: 0x0f172a,
+    metalness: 0.95,
+    roughness: 0.08
+  });
+  const matWheel = new THREE.MeshStandardMaterial({ color: 0x111115, roughness: 0.85 });
+  const matRim = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9, roughness: 0.18 });
+  const matHeadlight = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const matTaillight = new THREE.MeshBasicMaterial({ color: 0xff1133 });
 
-  const chassis = new THREE.Mesh(new THREE.BoxGeometry(3.5, 1.3, 6.8), matBody);
-  chassis.position.y = 1.1;
+  // Scocca inferiore aerodinamica
+  const chassis = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.15, 7.0), matBody);
+  chassis.position.y = 1.05;
   chassis.castShadow = true;
+  chassis.receiveShadow = true;
   g.add(chassis);
+
+  // Cofano anteriore spiovente e paraurti sportivo
+  const hood = new THREE.Mesh(new THREE.BoxGeometry(3.45, 0.4, 2.2), matBody);
+  hood.position.set(0, 1.45, -2.25);
+  hood.rotation.x = 0.12;
+  g.add(hood);
+
+  const grill = new THREE.Mesh(
+    new THREE.BoxGeometry(2.2, 0.55, 0.12),
+    new THREE.MeshStandardMaterial({ color: 0x09090b, metalness: 0.8, roughness: 0.3 })
+  );
+  grill.position.set(0, 0.95, -3.52);
+  g.add(grill);
 
   // Portiere bianche stile LSPD se è un'auto della polizia
   if (hasPoliceSirens && !isVan) {
     const doorStripe = new THREE.Mesh(
-      new THREE.BoxGeometry(3.56, 0.9, 2.8),
-      new THREE.MeshLambertMaterial({ color: 0xf8fafc })
+      new THREE.BoxGeometry(3.64, 0.92, 2.8),
+      new THREE.MeshStandardMaterial({ color: 0xf8fafc, metalness: 0.5, roughness: 0.25 })
     );
-    doorStripe.position.set(0, 1.15, 0);
+    doorStripe.position.set(0, 1.1, 0);
     g.add(doorStripe);
   }
 
-  const cabinH = isVan ? 1.55 : 1.15;
+  // Abitacolo vetrato riflettente + Tetto in tinta carrozzeria
+  const cabinH = isVan ? 1.6 : 1.08;
   const cabinL = isVan ? 4.6 : 3.3;
-  const cabin = new THREE.Mesh(new THREE.BoxGeometry(3.1, cabinH, cabinL), matCabin);
-  cabin.position.set(0, 1.7 + cabinH / 2 - 0.2, isVan ? 0.3 : -0.2);
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(3.12, cabinH, cabinL), matCabin);
+  cabin.position.set(0, 1.65 + cabinH / 2 - 0.15, isVan ? 0.35 : -0.15);
   cabin.castShadow = true;
   g.add(cabin);
 
+  const roofCap = new THREE.Mesh(new THREE.BoxGeometry(3.16, 0.14, cabinL - 0.3), matBody);
+  roofCap.position.set(0, 1.65 + cabinH - 0.1, isVan ? 0.35 : -0.15);
+  g.add(roofCap);
+
+  // Alettone posteriore (Spoiler) per le Supercar
+  if (!isVan && !hasPoliceSirens) {
+    const spoilerWing = new THREE.Mesh(new THREE.BoxGeometry(3.3, 0.12, 0.65), matBody);
+    spoilerWing.position.set(0, 2.05, 3.15);
+    const strutL = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.45, 0.3), matCabin);
+    strutL.position.set(-1.1, 1.8, 3.15);
+    const strutR = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.45, 0.3), matCabin);
+    strutR.position.set(1.1, 1.8, 3.15);
+    g.add(spoilerWing, strutL, strutR);
+  }
+
   // Barra Lampeggianti Polizia / SWAT sul tetto
   if (hasPoliceSirens) {
-    const barY = 1.7 + cabinH - 0.05;
+    const barY = 1.65 + cabinH + 0.12;
     const redLight = new THREE.Mesh(
-      new THREE.BoxGeometry(1.1, 0.28, 0.45),
+      new THREE.BoxGeometry(1.15, 0.28, 0.45),
       new THREE.MeshBasicMaterial({ color: 0xff1111 })
     );
     redLight.position.set(-0.6, barY, -0.2);
     const blueLight = new THREE.Mesh(
-      new THREE.BoxGeometry(1.1, 0.28, 0.45),
+      new THREE.BoxGeometry(1.15, 0.28, 0.45),
       new THREE.MeshBasicMaterial({ color: 0x1d4ed8 })
     );
     blueLight.position.set(0.6, barY, -0.2);
@@ -1854,21 +2119,28 @@ function createVehicleMesh(name, bodyColor, isVan = false, hasPoliceSirens = fal
     g.userData.sirenLights = { redLight, blueLight };
   }
 
-  [[-1.8, 0.65, -2.1], [1.8, 0.65, -2.1], [-1.8, 0.65, 2.1], [1.8, 0.65, 2.1]].forEach(w => {
-    const wheel = new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.25, 1.25), matWheel);
+  // Ruote cilindriche 3D con cerchi in lega metallizzati
+  const wheelGeo = new THREE.CylinderGeometry(0.68, 0.68, 0.48, 14);
+  wheelGeo.rotateZ(Math.PI / 2);
+  const rimGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.52, 10);
+  rimGeo.rotateZ(Math.PI / 2);
+
+  [[-1.82, 0.68, -2.15], [1.82, 0.68, -2.15], [-1.82, 0.68, 2.15], [1.82, 0.68, 2.15]].forEach(w => {
+    const wheel = new THREE.Mesh(wheelGeo, matWheel);
     wheel.position.set(w[0], w[1], w[2]);
-    g.add(wheel);
+    const rim = new THREE.Mesh(rimGeo, matRim);
+    rim.position.set(w[0], w[1], w[2]);
+    g.add(wheel, rim);
   });
 
-  const hlL = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.35, 0.15), matHeadlight);
-  hlL.position.set(-1.15, 1.2, -3.42);
-  const hlR = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.35, 0.15), matHeadlight);
-  hlR.position.set(1.15, 1.2, -3.42);
-  const tlL = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.3, 0.15), matTaillight);
-  tlL.position.set(-1.15, 1.2, 3.42);
-  const tlR = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.3, 0.15), matTaillight);
-  tlR.position.set(1.15, 1.2, 3.42);
-  g.add(hlL, hlR, tlL, tlR);
+  // Fari anteriori LED e barra LED posteriore continua stile GTA VI
+  const hlL = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.28, 0.16), matHeadlight);
+  hlL.position.set(-1.22, 1.22, -3.52);
+  const hlR = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.28, 0.16), matHeadlight);
+  hlR.position.set(1.22, 1.22, -3.52);
+  const tailBar = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.24, 0.16), matTaillight);
+  tailBar.position.set(0, 1.25, 3.52);
+  g.add(hlL, hlR, tailBar);
 
   scene.add(g);
   return g;
@@ -1951,12 +2223,12 @@ function createNameplateSprite(nameText, isEnemy = true) {
 function createCharacterMesh(cls, nameText, entityId, isEnemy = true) {
   const group = new THREE.Group();
 
-  const matCloth = new THREE.MeshLambertMaterial({ color: cls.bodyColor || 0x2563eb });
-  const matVest = new THREE.MeshLambertMaterial({ color: 0x18181b });
-  const matPants = new THREE.MeshLambertMaterial({ color: 0x1e293b });
-  const matBoots = new THREE.MeshLambertMaterial({ color: 0x09090b });
-  const matSkin = new THREE.MeshLambertMaterial({ color: 0xffdbac });
-  const matAccent = new THREE.MeshLambertMaterial({ color: cls.color || 0xffaa00 });
+  const matCloth = new THREE.MeshStandardMaterial({ color: cls.bodyColor || 0x2563eb, roughness: 0.62, metalness: 0.1 });
+  const matVest = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.38, metalness: 0.55 });
+  const matPants = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7, metalness: 0.08 });
+  const matBoots = new THREE.MeshStandardMaterial({ color: 0x09090b, roughness: 0.32, metalness: 0.65 });
+  const matSkin = new THREE.MeshStandardMaterial({ color: 0xffdbac, roughness: 0.55, metalness: 0.05 });
+  const matAccent = new THREE.MeshStandardMaterial({ color: cls.color || 0xffaa00, roughness: 0.3, metalness: 0.5 });
 
   const leftLegPivot = new THREE.Group();
   leftLegPivot.position.set(-0.36, 1.2, 0);
@@ -2031,7 +2303,14 @@ function createCharacterMesh(cls, nameText, entityId, isEnemy = true) {
   headCube.castShadow = true;
   headGroup.add(headCube);
 
-  const visor = new THREE.Mesh(new THREE.BoxGeometry(1.14, 0.28, 0.18), matBoots);
+  const matVisor = new THREE.MeshStandardMaterial({
+    color: 0x090d16,
+    metalness: 0.95,
+    roughness: 0.08,
+    emissive: isEnemy ? 0x330000 : 0x002233,
+    emissiveIntensity: 0.4
+  });
+  const visor = new THREE.Mesh(new THREE.BoxGeometry(1.14, 0.28, 0.18), matVisor);
   visor.position.set(0, 0.08, -0.5);
   headGroup.add(visor);
 
@@ -2149,41 +2428,54 @@ function buildWeaponViewModel() {
   if (weap.isKnife) {
     const handle = new THREE.Mesh(
       new THREE.BoxGeometry(0.08, 0.1, 0.32),
-      new THREE.MeshLambertMaterial({ color: 0x18181b })
+      new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.5, metalness: 0.4 })
     );
     const guard = new THREE.Mesh(
       new THREE.BoxGeometry(0.18, 0.14, 0.04),
-      new THREE.MeshLambertMaterial({ color: 0xef4444 })
+      new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.3, metalness: 0.7 })
     );
     guard.position.set(0, 0, -0.17);
     const blade = new THREE.Mesh(
       new THREE.BoxGeometry(0.03, 0.11, 0.52),
-      new THREE.MeshLambertMaterial({ color: 0xe4e4e7 })
+      new THREE.MeshStandardMaterial({ color: 0xf4f4f5, roughness: 0.12, metalness: 0.95 })
     );
     blade.position.set(0, 0.01, -0.44);
     g.add(handle, guard, blade);
     g.position.set(0.32, -0.26, -0.48);
   } else {
-    const body = new THREE.Mesh(
-      new THREE.BoxGeometry(0.14, 0.18, 0.85),
-      new THREE.MeshLambertMaterial({ color: weap.modelColor })
-    );
+    const bodyMat = new THREE.MeshStandardMaterial({ color: weap.modelColor, roughness: 0.28, metalness: 0.78 });
+    const barrelMat = new THREE.MeshStandardMaterial({ color: 0x111115, roughness: 0.22, metalness: 0.9 });
+    const accentMat = new THREE.MeshStandardMaterial({ color: weap.accentColor, roughness: 0.4, metalness: 0.55 });
+
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.18, 0.85), bodyMat);
     g.add(body);
-    const barrelMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
-    const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.58), barrelMat);
-    barrel.position.set(0, 0.04, -0.55);
+
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.03, 0.52), barrelMat);
+    rail.position.set(0, 0.1, -0.05);
+    g.add(rail);
+
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.62, 10), barrelMat);
+    barrel.rotation.x = Math.PI / 2;
+    barrel.position.set(0, 0.04, -0.58);
     g.add(barrel);
-    const mag = new THREE.Mesh(
-      new THREE.BoxGeometry(0.1, 0.25, 0.14),
-      new THREE.MeshLambertMaterial({ color: weap.accentColor })
-    );
-    mag.position.set(0, -0.18, -0.05);
+
+    const mag = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.26, 0.14), accentMat);
+    mag.position.set(0, -0.18, -0.06);
+    mag.rotation.x = 0.12;
     g.add(mag);
 
     if (weap.scope) {
-      const scopeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.09, 0.44), barrelMat);
-      scopeMesh.position.set(0, 0.14, -0.05);
+      const scopeMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.048, 0.44, 12), barrelMat);
+      scopeMesh.rotation.x = Math.PI / 2;
+      scopeMesh.position.set(0, 0.15, -0.05);
       g.add(scopeMesh);
+    } else {
+      // Mirino Olografico Red-Dot sulle armi d'assalto/SMG
+      const holoMount = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.06, 0.12), barrelMat);
+      holoMount.position.set(0, 0.13, 0.02);
+      const holoDot = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.015, 0.01), new THREE.MeshBasicMaterial({ color: 0x00ff88 }));
+      holoDot.position.set(0, 0.15, 0.02);
+      g.add(holoMount, holoDot);
     }
     g.position.set(0.32, -0.28, -0.52);
   }
@@ -3157,17 +3449,21 @@ function tryShoot() {
   sfx.playShoot(weap.type);
   updateHUD();
 
+  // Flash luminoso della volata (Muzzle Flash PBR)
+  muzzleLight.intensity = 2.6;
+  setTimeout(() => { muzzleLight.intensity = 0; }, 55);
+
   if (currentWeaponMesh) {
     currentWeaponMesh.position.z += 0.1;
-    currentWeaponMesh.rotation.x += 0.05;
+    currentWeaponMesh.rotation.x += 0.06;
   }
   const chEl = document.getElementById('crosshair');
-  chEl.style.transform = 'translate(-50%, -50%) scale(1.3)';
-  setTimeout(() => { chEl.style.transform = 'translate(-50%, -50%) scale(1)'; }, 65);
+  chEl.style.transform = 'translate(-50%, -50%) scale(1.32)';
+  setTimeout(() => { chEl.style.transform = 'translate(-50%, -50%) scale(1)'; }, 70);
 
   const spread = player.isAds ? weap.adsSpread : weap.spread;
-  const activeWalls = mapColliders.filter(c => c.active).map(c => c.mesh);
-  const allTargets = activeWalls.concat(hitboxMeshes);
+  const activeWallMeshes = mapColliders.filter(c => c.active).map(c => c.mesh);
+  const allTargets = activeWallMeshes.concat(hitboxMeshes);
 
   for (let p = 0; p < weap.pellets; p++) {
     const dir = new THREE.Vector3(0, 0, -1);
@@ -3180,7 +3476,7 @@ function tryShoot() {
     const hits = raycaster.intersectObjects(allTargets, false);
 
     const muzzlePos = camera.position.clone().add(new THREE.Vector3(0.2, -0.16, -0.45).applyEuler(camera.rotation));
-    let endPoint = camera.position.clone().add(dir.clone().multiplyScalar(170));
+    let endPoint = camera.position.clone().add(dir.clone().multiplyScalar(160));
 
     if (hits.length > 0) {
       const hit = hits[0];
@@ -3206,7 +3502,7 @@ function tryShoot() {
 function throwCombatKnife() {
   if (!player.hasKnife) return;
   player.hasKnife = false;
-  player.knifeCooldownEnd = performance.now() + 4500;
+  player.knifeCooldownEnd = performance.now() + 5000;
   sfx.playShoot('knife');
   updateScopeUI();
   updateHUD();
@@ -3214,7 +3510,7 @@ function throwCombatKnife() {
   const knifeGroup = new THREE.Group();
   const blade = new THREE.Mesh(
     new THREE.BoxGeometry(0.08, 0.18, 0.75),
-    new THREE.MeshLambertMaterial({ color: 0xe4e4e7 })
+    new THREE.MeshStandardMaterial({ color: 0xe4e4e7, metalness: 0.9, roughness: 0.15 })
   );
   const ring = new THREE.Mesh(
     new THREE.CylinderGeometry(0.45, 0.45, 0.06, 12),
@@ -3241,26 +3537,27 @@ function updateThrownKnives(dt, now) {
     updateScopeUI();
     updateHUD();
   }
-  const activeWalls = mapColliders.filter(c => c.active).map(c => c.mesh);
+
+  const activeWallMeshes = mapColliders.filter(c => c.active).map(c => c.mesh);
 
   for (let i = thrownKnives.length - 1; i >= 0; i--) {
     const tk = thrownKnives[i];
     if (!tk.stuck) {
-      tk.vel.y -= 16.0 * dt;
+      tk.vel.y -= 18.0 * dt;
       const stepVec = tk.vel.clone().multiplyScalar(dt);
       const dist = stepVec.length();
       const dir = stepVec.clone().normalize();
 
       raycaster.set(tk.pos, dir);
-      const hits = raycaster.intersectObjects(hitboxMeshes.concat(activeWalls), false);
+      const hits = raycaster.intersectObjects(hitboxMeshes.concat(activeWallMeshes), false);
 
       if (hits.length > 0 && hits[0].distance <= dist + 0.5) {
         const hit = hits[0];
         const entId = hit.object.userData.entityId;
         if (entId && entities.has(entId)) {
           spawnImpactSparks(hit.point, 0xff0055);
-          spawnFloatingDamage(hit.point, 260, true, '🔪 BULLSEYE!');
-          applyDamageToEnemy(entId, 260, true, false);
+          spawnFloatingDamage(hit.point, 240, true, '🔪 BULLSEYE!');
+          applyDamageToEnemy(entId, 240, true, false);
           scene.remove(tk.mesh);
           thrownKnives.splice(i, 1);
           player.hasKnife = true;
@@ -3281,15 +3578,17 @@ function updateThrownKnives(dt, now) {
       }
     } else {
       tk.mesh.rotation.y += 3 * dt;
-      if (tk.pos.distanceTo(player.pos) < 3.6) {
+      if (tk.pos.distanceTo(player.pos) < 3.8) {
         player.hasKnife = true;
         scene.remove(tk.mesh);
         thrownKnives.splice(i, 1);
+        sfx.playReward();
         updateScopeUI();
         updateHUD();
         continue;
       }
     }
+
     if (now - tk.born > 12000) {
       scene.remove(tk.mesh);
       thrownKnives.splice(i, 1);
@@ -3309,105 +3608,110 @@ function applyDamageToEnemy(entId, dmg, isHead, fromNetwork = false) {
     clearTimeout(hm._timer);
     hm._timer = setTimeout(() => { hm.style.opacity = '0'; }, 110);
 
-    broadcastNetMessage({
-      type: 'enemyHit',
-      entId,
-      dmg,
-      isHead
-    });
+    broadcastNetMessage({ type: 'enemyHit', entId, dmg, isHead });
   }
 
   ent.hp -= dmg;
   ent.mesh.nameplate.userData.updatePlate(ent.name, ent.hp / ent.maxHp);
 
   if (ent.hp <= 0) {
-    const bounty = ent.isBoss ? 15000 : 800;
-    player.cash += bounty;
-    player.hp = Math.min(player.maxHp, player.hp + 15);
-    player.armor = Math.min(player.maxArmor, player.armor + 15);
-    addKillfeed(player.name, ent.name, isHead, bounty);
+    const bounty = ent.isBoss ? 5000 : 650;
+    if (!fromNetwork) {
+      player.cash += bounty;
+      player.hp = Math.min(player.maxHp, player.hp + 18);
+      player.armor = Math.min(player.maxArmor, player.armor + 12);
+    }
+    addKillfeed(fromNetwork ? 'CREW' : player.name, ent.name, isHead, bounty);
     removeEntity(entId);
     updateHUD();
   }
 }
 
 // ============================================================================
-// 11. FISICA MOVIMENTO A PIEDI, GUIDA VEICOLI E INTERAZIONE [E]
+// 11. FISICA GIOCATORE, GUIDA VEICOLI 3D E INTERAZIONI [E] / [F]
 // ============================================================================
-const GRAVITY = 42.0;
-const JUMP_FORCE = 15.2;
-const BASE_SPEED = 18.5;
+const GRAVITY = 40.0;
+const JUMP_FORCE = 14.8;
+const BASE_SPEED = 17.5;
 
 function updatePlayerAndVehiclePhysics(dt) {
   if (player.drivingVehicle) {
     const v = player.drivingVehicle;
     let throttle = 0;
+    let steer = 0;
     if (keys['KeyW'] || keys['ArrowUp']) throttle += 1;
     if (keys['KeyS'] || keys['ArrowDown']) throttle -= 1;
+    if (keys['KeyA'] || keys['ArrowLeft']) steer += 1;
+    if (keys['KeyD'] || keys['ArrowRight']) steer -= 1;
 
-    const accel = throttle !== 0 ? 34.0 : 18.0;
-    const targetSpeed = throttle * v.maxSpeed;
-    v.speed += (targetSpeed - v.speed) * Math.min(1, accel * dt * 0.15);
-
+    const accel = 32.0;
+    if (throttle !== 0) {
+      v.speed += throttle * accel * dt;
+    } else {
+      v.speed *= (1 - 2.5 * dt);
+    }
     if (keys['Space']) {
-      v.speed *= (1 - Math.min(1, 7.0 * dt));
+      v.speed *= (1 - 7.5 * dt); // Freno a mano
+    }
+    v.speed = Math.max(-v.maxSpeed * 0.45, Math.min(v.maxSpeed, v.speed));
+
+    if (Math.abs(v.speed) > 0.8) {
+      const dirSign = v.speed >= 0 ? 1 : -1;
+      v.yaw += steer * 2.1 * dirSign * dt;
     }
 
-    if (Math.abs(v.speed) > 0.6) {
-      const steerDir = v.speed >= 0 ? 1 : -1;
-      if (keys['KeyA'] || keys['ArrowLeft']) v.yaw += 2.15 * dt * steerDir;
-      if (keys['KeyD'] || keys['ArrowRight']) v.yaw -= 2.15 * dt * steerDir;
+    const vx = -Math.sin(v.yaw) * v.speed * dt;
+    const vz = -Math.cos(v.yaw) * v.speed * dt;
+
+    if (!checkVehicleWorldCollision(v.pos.x + vx, v.pos.z, 2.2)) {
+      v.pos.x += vx;
+    } else {
+      v.speed *= -0.35;
     }
-
-    const vx = -Math.sin(v.yaw) * v.speed;
-    const vz = -Math.cos(v.yaw) * v.speed;
-
-    v.pos.x += vx * dt;
-    if (checkVehicleWorldCollision(v.pos.x, v.pos.z, 2.3)) {
-      v.pos.x -= vx * dt;
+    if (!checkVehicleWorldCollision(v.pos.x, v.pos.z + vz, 2.2)) {
+      v.pos.z += vz;
+    } else {
       v.speed *= -0.35;
     }
 
-    v.pos.z += vz * dt;
-    if (checkVehicleWorldCollision(v.pos.x, v.pos.z, 2.3)) {
-      v.pos.z -= vz * dt;
-      v.speed *= -0.35;
-    }
-
-    v.pos.x = Math.max(-335, Math.min(335, v.pos.x));
-    v.pos.z = Math.max(-335, Math.min(335, v.pos.z));
+    v.pos.x = Math.max(-332, Math.min(332, v.pos.x));
+    v.pos.z = Math.max(-332, Math.min(332, v.pos.z));
 
     v.mesh.position.copy(v.pos);
     v.mesh.rotation.y = v.yaw;
     player.pos.copy(v.pos);
 
-    if (Math.abs(v.speed) > 12) {
-      entities.forEach((ent, entId) => {
-        if (ent.isEnemy && ent.pos.y < 2 && ent.pos.distanceTo(v.pos) < 3.6) {
+    // Investimento nemici ad alta velocità (Roadkill)
+    if (Math.abs(v.speed) > 15) {
+      entities.forEach(ent => {
+        if (ent.isEnemy && ent.pos.distanceTo(v.pos) < 3.6) {
           spawnImpactSparks(ent.pos, 0xff2222);
-          applyDamageToEnemy(entId, 240, false, false);
+          applyDamageToEnemy(ent.id, 260, false, false);
         }
       });
     }
 
-    const camDist = 13.0;
-    const camHeight = 5.4;
+    // Visuale 3ª Persona stile GTA V dietro l'auto
+    const camDist = 11.5;
+    const camHeight = 4.6;
     const camX = v.pos.x + Math.sin(v.yaw) * camDist;
     const camZ = v.pos.z + Math.cos(v.yaw) * camDist;
-    camera.position.set(camX, v.pos.y + camHeight, camZ);
+    camera.position.lerp(new THREE.Vector3(camX, v.pos.y + camHeight, camZ), Math.min(1, dt * 10));
     camera.lookAt(v.pos.x - Math.sin(v.yaw) * 6, v.pos.y + 1.8, v.pos.z - Math.cos(v.yaw) * 6);
-    player.yaw = v.yaw;
+    camera.fov = 78 + Math.min(14, Math.abs(v.speed) * 0.25);
+    camera.updateProjectionMatrix();
 
     updateHUD();
     checkProximityPrompts(dt);
     return;
   }
 
+  // MOVIMENTO A PIEDI
   const cls = CLASSES[player.classIdx];
-  const wantSprint = keys['ShiftLeft'] || keys['ShiftRight'];
-  const wantCrouch = keys['KeyC'];
+  const weap = getActiveWeapon();
+  player.isCrouching = !!(keys['KeyC'] || keys['ControlLeft']);
+  const isSprinting = !!(keys['ShiftLeft'] || keys['ShiftRight']) && !player.isCrouching && !player.isAds;
 
-  player.isCrouching = wantCrouch;
   const targetH = player.isCrouching ? player.crouchHeight : player.height;
   player.currentHeight += (targetH - player.currentHeight) * Math.min(1, dt * 14);
 
@@ -3421,8 +3725,9 @@ function updatePlayerAndVehiclePhysics(dt) {
   if (moveDir.lengthSq() > 0) moveDir.normalize();
   moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), player.yaw);
 
-  const sprintMult = wantSprint && !player.isAds ? 1.34 : 1.0;
-  const maxSpeed = BASE_SPEED * cls.speedMult * sprintMult * (player.isAds ? 0.68 : 1.0);
+  const sprintMult = isSprinting ? 1.34 : 1.0;
+  const knifeMult = weap.isKnife ? 1.15 : 1.0;
+  const maxSpeed = BASE_SPEED * cls.speedMult * sprintMult * knifeMult * (player.isAds ? 0.65 : 1.0) * (player.isCrouching ? 0.62 : 1.0);
   const accel = player.onGround ? 14.0 : 4.5;
 
   player.vel.x += (moveDir.x * maxSpeed - player.vel.x) * Math.min(1, accel * dt);
@@ -3455,9 +3760,8 @@ function updatePlayerAndVehiclePhysics(dt) {
   camera.rotation.y = player.yaw;
   camera.rotation.x = player.pitch;
 
-  const weap = getActiveWeapon();
-  const targetFov = player.isAds ? weap.adsFov : (wantSprint && moveDir.lengthSq() > 0 ? 83 : 75);
-  camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 12);
+  const targetFov = player.isAds ? weap.adsFov : (isSprinting ? 84 : 75);
+  camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 14);
   camera.updateProjectionMatrix();
 
   if (currentWeaponMesh) {
@@ -4051,12 +4355,32 @@ document.getElementById('sens-slider').addEventListener('input', (e) => {
 });
 
 document.getElementById('btn-toggle-time').addEventListener('click', () => {
-  isNightMode = !isNightMode;
-  const skyHex = isNightMode ? 0x0b1021 : 0xd98a6c;
-  scene.background.setHex(skyHex);
-  scene.fog.color.setHex(skyHex);
-  ambientLight.intensity = isNightMode ? 0.38 : 0.72;
-  dirLight.intensity = isNightMode ? 0.45 : 0.95;
+  timeOfDayMode = (timeOfDayMode + 1) % 3;
+  createGtaViSkyDome(timeOfDayMode);
+  generateGtaViEnvironmentMap(timeOfDayMode);
+
+  if (timeOfDayMode === 0) {
+    // Tramonto GTA VI Golden Hour
+    scene.fog.color.setHex(0xd96b52);
+    hemiLight.color.setHex(0xff9e7d);
+    hemiLight.intensity = 0.68;
+    dirLight.color.setHex(0xffb078);
+    dirLight.intensity = 1.35;
+  } else if (timeOfDayMode === 1) {
+    // Notte Vice Neon
+    scene.fog.color.setHex(0x090d1e);
+    hemiLight.color.setHex(0x38bdf8);
+    hemiLight.intensity = 0.38;
+    dirLight.color.setHex(0x818cf8);
+    dirLight.intensity = 0.55;
+  } else {
+    // Giorno Tropicale Soleggiato
+    scene.fog.color.setHex(0x7dd3fc);
+    hemiLight.color.setHex(0xe0f2fe);
+    hemiLight.intensity = 0.82;
+    dirLight.color.setHex(0xfffbeb);
+    dirLight.intensity = 1.45;
+  }
 });
 
 document.getElementById('player-name-input').addEventListener('input', (e) => {
@@ -4131,6 +4455,15 @@ function animate(now) {
   requestAnimationFrame(animate);
   const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
   lastFrameTime = now;
+
+  // Mantieni la cupola del cielo GTA VI centrata sulla visuale e anima i riflessi dell'oceano
+  if (skyDomeMesh) {
+    skyDomeMesh.position.x = camera.position.x;
+    skyDomeMesh.position.z = camera.position.z;
+  }
+  if (oceanMesh) {
+    oceanMesh.position.y = 0.06 + Math.sin(now * 0.0025) * 0.05;
+  }
 
   if (isPlaying) {
     if (mouseDownLeft && getActiveWeapon().auto && !player.drivingVehicle) {
